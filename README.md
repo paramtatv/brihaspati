@@ -47,16 +47,30 @@ The notebook page. `docs/` is the notebook, served at https://paramtatv.github.i
 `sh tools/build-docs.sh`: cells of two kinds (code and note), edit, run a cell, run all, add, delete and move cells,
 open and save `.isas` files (File API), and a saved-vs-rerun mismatch badge on every code cell. The UI is Sanskrit
 first with an en/hi toggle. One worker at a time runs `kernel/core.mjs` (the same file `kernel/cell.mjs` uses). The page
-JavaScript is about 26 KB, without the wasm and the compiler image.
+JavaScript is about 47 KB, without the wasm and the compiler image.
 
-The `.isas` format, version 1 (reference parser and writer: `kernel/isas.mjs`; the marker words `कोष्ठः`, `प्रकारः`,
-`फलम्` are copied from the format spec into `kernel/isas-names.mjs` by `tools/gen-isas-names.py`). Line 1 is `ISAS 1`; header
-lines `key: value` (`title`, `stage1_sha256`, `yantra_wasm_sha256`, `created`; unknown keys are kept); a cell is a marker
-line `॥ कोष्ठः N code|note ॥` and its body; a code cell may be followed by `॥ फलम् ॥` and its saved output. A reader refuses by
-name: `IsasNotAnIsasFile`, `IsasUnknownMajorVersion`, `IsasMalformedHeader`, `IsasBadCellMarker`, `IsasCellNumberOutOfOrder`,
-`IsasOutputOnNote`, `IsasBadOutput`; the writer refuses `IsasUnwritableBody`, `IsasUnknownCellKind`. `examples/*.isas` holds
-the 19 cells as three notebooks, with the native runner's outputs saved in them. The output encoding is isolated in
-`encodeOutput` and `decodeOutput`.
+The `.isas` format, version 1 with the amendment (reference parser and writer: `kernel/isas.mjs`; the marker words `कोष्ठः`,
+`प्रकारः`, `फलम्` are copied from the format spec into `kernel/isas-names.mjs` by `tools/gen-isas-names.py`). Line 1 is
+`ISAS 1`; header lines `key: value` (`title`, `stage1_sha256`, `yantra_wasm_sha256`, `created`; unknown keys are kept); a cell is
+a marker line `॥ कोष्ठः N code|note ॥` and its body. A note is a Markdown subset (headings, emphasis, lists, code spans and
+blocks, links, tables, images by relative path, quotes, rules) drawn by our own renderer (`kernel/md.mjs`): raw HTML is text,
+`javascript:` links are not links, image paths must be relative with no `..`. A code cell may be followed by `॥ फलम् ॥` and
+ONE JSON line per output part, each with a MIME `type`: `text/plain {data}`; `image/png` or `image/jpeg`
+`{encoding:"base64", data}` or `{src:"<name>.isas.d/<n>.<ext>", sha256}`; `image/svg+xml {data}` (sanitised by `kernel/svg.mjs`: an
+allowlist re-serialiser that drops script, foreignObject, style, animation, external references, event attributes, DOCTYPE
+and CDATA; applied when a file is read and when an image arrives); and `application/x-sassembly-result {status, steps_compile,
+steps_run, refusal}`. There is no `text/html`. Images under 64 KB are embedded; larger ones are written as side files in
+`<name>.isas.d/` and referenced by sha256, unless "embed everything" is chosen (the checkbox on the page; without it the browser
+downloads the notebook and the side files, which go in a folder `<name>.isas.d/`; open the notebook and its side files together).
+A reader refuses by name: `IsasNotAnIsasFile`, `IsasUnknownMajorVersion`, `IsasMalformedHeader`, `IsasBadCellMarker`,
+`IsasCellNumberOutOfOrder`, `IsasOutputOnNote`, `IsasBadOutput`, `IsasUnsupportedType`; a missing or changed side file is
+`IsasMissingSideFile` or `IsasSideFileHashMismatch`; the writer refuses `IsasUnwritableBody`, `IsasUnknownCellKind`.
+`examples/*.isas` holds the 19 cells as three notebooks (native outputs saved), plus `images.isas` (a rich note and a cell with a
+png and an svg output). The output encoding is isolated in `encodeOutput` and `decodeOutput`.
+
+Image channel (stub). The worker returns `files: [{name, bytes}]` for what a program wrote; the page types them by magic bytes.
+Until yantra-wasm has an in-memory patra root, that list is a fixture (`window.__fixtureFiles`, used by the tests), so a real
+cell produces no images yet and `images.isas` shows a mismatch when run.
 
 A refusal is named in Sanskrit, copied from the compiler's `ir.t1` into `kernel/refusals.mjs` by `tools/gen-refusals.py`
 (finisher status 853, 860, 861, 862). A driver refusal (`CellShapeRefused`, `StepLimitExceeded`, compile failure) is shown by name.
@@ -71,7 +85,7 @@ Known limits. Fixed entry: a cell must be module शृङ्खला with the 
 (anything else is `CellShapeRefused`); no state or import between cells. Compile errors carry no source position. Every cell
 starts a fresh engine and compiles from scratch, about 70 to 720 million guest steps.
 
-Tests. `node test/agree.mjs` (native == expected == wasm, 19 cells), `node test/isas.mjs` (round trips and every refusal),
+Tests. `node test/agree.mjs` (native == expected == wasm, 19 cells), `node test/isas.mjs` (round trips incl. an embedded and a side-file image, every refusal, a hostile SVG, the Markdown subset),
 `node test/steplimit.mjs`, `PLAYWRIGHT=<playwright-core dir> node test/isas-page.mjs` (headless Chromium: each example opened,
-Run all, every result equal to native; save, reopen, a doctored saved output flagged, worker failures, a live native cell,
+Run all, every result equal to native; save, reopen, a doctored saved output flagged, notes and images from a fixture, a changed image flagged, side-file save and open, worker failures, a live native cell,
 page errors fail).

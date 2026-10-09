@@ -15,7 +15,8 @@ created: 2026-10-09
     प्रत्यागमनम् ७ ।
 इति
 ॥ फलम् ॥
-{"status":7,"steps_compile":73268228,"steps_run":44,"stdout_b64":"WA==","refusal":null}
+{"type":"text/plain","data":"X"}
+{"type":"application/x-sassembly-result","status":7,"steps_compile":73268228,"steps_run":44,"refusal":null}
 ॥ कोष्ठः 3 code ॥
 मण्डलम् शृङ्खला ॥
 आयातः अष्टक ।
@@ -27,7 +28,8 @@ created: 2026-10-09
     प्रत्यागमनम् ७ ।
 इति
 ॥ फलम् ॥
-{"status":7,"steps_compile":74302923,"steps_run":49,"stdout_b64":"WFg=","refusal":null}
+{"type":"text/plain","data":"XX"}
+{"type":"application/x-sassembly-result","status":7,"steps_compile":74302923,"steps_run":49,"refusal":null}
 ॥ कोष्ठः 4 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -43,7 +45,7 @@ created: 2026-10-09
     प्रत्यागमनम् क अङ्कः ५ अन्तः ।
 इति
 ॥ फलम् ॥
-{"status":857,"steps_compile":85103224,"steps_run":42,"stdout_b64":"","refusal":null}
+{"type":"application/x-sassembly-result","status":857,"steps_compile":85103224,"steps_run":42,"refusal":null}
 ॥ कोष्ठः 5 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -53,7 +55,7 @@ created: 2026-10-09
     प्रत्यागमनम् ख अङ्कः ० अन्तः ।
 इति
 ॥ फलम् ॥
-{"status":44,"steps_compile":106946539,"steps_run":167,"stdout_b64":"","refusal":null}
+{"type":"application/x-sassembly-result","status":44,"steps_compile":106946539,"steps_run":167,"refusal":null}
 ॥ कोष्ठः 6 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -69,4 +71,4 @@ created: 2026-10-09
     प्रत्यागमनम् क अङ्कः ५ अन्तः ।
 इति
 ॥ फलम् ॥
-{"status":5,"steps_compile":117204063,"steps_run":230702447,"stdout_b64":"","refusal":null}
+{"type":"application/x-sassembly-result","status":5,"steps_compile":117204063,"steps_run":230702447,"refusal":null}

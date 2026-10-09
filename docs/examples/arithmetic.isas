@@ -17,7 +17,7 @@ created: 2026-10-09
     प्रत्यागमनम् २ ।
 इति
 ॥ फलम् ॥
-{"status":1,"steps_compile":75625166,"steps_run":47,"stdout_b64":"","refusal":null}
+{"type":"application/x-sassembly-result","status":1,"steps_compile":75625166,"steps_run":47,"refusal":null}
 ॥ कोष्ठः 3 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -30,7 +30,7 @@ created: 2026-10-09
     प्रत्यागमनम् २ ।
 इति
 ॥ फलम् ॥
-{"status":1,"steps_compile":74734012,"steps_run":48,"stdout_b64":"","refusal":null}
+{"type":"application/x-sassembly-result","status":1,"steps_compile":74734012,"steps_run":48,"refusal":null}
 ॥ कोष्ठः 4 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -41,7 +41,7 @@ created: 2026-10-09
     प्रत्यागमनम् ल ।
 इति
 ॥ फलम् ॥
-{"status":1,"steps_compile":73575149,"steps_run":45,"stdout_b64":"","refusal":null}
+{"type":"application/x-sassembly-result","status":1,"steps_compile":73575149,"steps_run":45,"refusal":null}
 ॥ कोष्ठः 5 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -56,7 +56,7 @@ created: 2026-10-09
     प्रत्यागमनम् अ ।
 इति
 ॥ फलम् ॥
-{"status":11,"steps_compile":77327093,"steps_run":54,"stdout_b64":"","refusal":null}
+{"type":"application/x-sassembly-result","status":11,"steps_compile":77327093,"steps_run":54,"refusal":null}
 ॥ कोष्ठः 6 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -68,7 +68,7 @@ created: 2026-10-09
     प्रत्यागमनम् २ ।
 इति
 ॥ फलम् ॥
-{"status":2,"steps_compile":74102796,"steps_run":45,"stdout_b64":"","refusal":null}
+{"type":"application/x-sassembly-result","status":2,"steps_compile":74102796,"steps_run":45,"refusal":null}
 ॥ कोष्ठः 7 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -81,7 +81,7 @@ created: 2026-10-09
     प्रत्यागमनम् २ ।
 इति
 ॥ फलम् ॥
-{"status":2,"steps_compile":74831748,"steps_run":47,"stdout_b64":"","refusal":null}
+{"type":"application/x-sassembly-result","status":2,"steps_compile":74831748,"steps_run":47,"refusal":null}
 ॥ कोष्ठः 8 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -98,7 +98,7 @@ created: 2026-10-09
     प्रत्यागमनम् ० ।
 इति
 ॥ फलम् ॥
-{"status":0,"steps_compile":75897317,"steps_run":1242,"stdout_b64":"","refusal":null}
+{"type":"application/x-sassembly-result","status":0,"steps_compile":75897317,"steps_run":1242,"refusal":null}
 ॥ कोष्ठः 9 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -350,4 +350,4 @@ created: 2026-10-09
     प्रत्यागमनम् ० ।
 इति
 ॥ फलम् ॥
-{"status":0,"steps_compile":716229120,"steps_run":21837,"stdout_b64":"","refusal":null}
+{"type":"application/x-sassembly-result","status":0,"steps_compile":716229120,"steps_run":21837,"refusal":null}

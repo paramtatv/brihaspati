@@ -1,0 +1,35 @@
+ISAS 1
+title: चित्राणि
+stage1_sha256: 71d06d6649a861c1c6205c95a59fd362f48914b377c6ace9e612bef827415480
+yantra_wasm_sha256: 56549f819b40f3d996e6960402380aac0536f40b48299411fe82c13f325f5f7e
+created: 2026-10-09
+॥ कोष्ठः 1 note ॥
+# बृहस्पतिः notes
+
+A note is **Markdown** (a subset): *emphasis*, `code`, [a link](https://github.com/paramtatv/sassembly), lists:
+
+- headings, emphasis, lists
+- code spans and blocks
+- tables, links, images by relative path
+
+| part | MIME type |
+|---|---|
+| text | text/plain |
+| picture | image/png, image/jpeg |
+| vector | image/svg+xml |
+
+Raw HTML such as <b>this</b> is shown as text, never run.
+॥ कोष्ठः 2 code ॥
+मण्डलम् शृङ्खला ॥
+आयातः अष्टक ।
+
+सार्वजनिक वृत्तिः स्वपरीक्षास्वप्रतिबिम्बम् ददाति न६४ आदि
+    चरः क ॱॱ अङ्कः अन्तः न६४ भवति ० ।
+    चरः अवगणना ॱॱ न६४ भवति अष्टकॱमुद्रणम् ८८ ।
+    प्रत्यागमनम् ७ ।
+इति
+॥ फलम् ॥
+{"type":"text/plain","data":"X"}
+{"type":"image/png","encoding":"base64","data":"iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAIAAADbtmxLAAAAQElEQVR4nO3OwQmAQADEwBUULNvSLWG+98iQAnJt37Od0713R2lIGpKGpCFpSBqShqQhaUgakoakIWlIGpKG5Ae+pwLhA0nl7gAAAABJRU5ErkJggg=="}
+{"type":"image/svg+xml","data":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 40 40\" width=\"80\" height=\"80\"><rect width=\"40\" height=\"40\" fill=\"#F4EFE5\"/><circle cx=\"20\" cy=\"20\" r=\"14\" fill=\"#A63A21\"/><text x=\"20\" y=\"25\" font-size=\"14\" text-anchor=\"middle\" fill=\"#fff\">ब</text></svg>"}
+{"type":"application/x-sassembly-result","status":7,"steps_compile":73268228,"steps_run":44,"refusal":null}

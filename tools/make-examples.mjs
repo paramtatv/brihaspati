@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { write, outputOf } from '../kernel/isas.mjs';
+import { RESULT } from '../kernel/parts.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pins = JSON.parse(readFileSync(join(root, 'kernel/pins.json'), 'utf8'));
 const rows = Object.fromEntries(readFileSync(join(root, 'cells/expected.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => { const j = JSON.parse(l); return [j.cell, j]; }));
@@ -19,8 +20,22 @@ for (const [file, [title, en, names]] of Object.entries(GROUPS)) {
     seen.add(n);
     cells.push({ kind: 'code', body: readFileSync(join(root, 'cells', n + '.t1'), 'utf8').replace(/\n+$/, ''), output: outputOf(rows[n + '.t1']) });
   }
-  writeFileSync(join(root, 'examples', file + '.isas'), write({ header: [['title', title], ['stage1_sha256', pins.stage1_sha256], ['yantra_wasm_sha256', pins.yantra_wasm_sha256], ['created', '2026-10-09']], cells }));
+  writeFileSync(join(root, 'examples', file + '.isas'), (await write({ header: [['title', title], ['stage1_sha256', pins.stage1_sha256], ['yantra_wasm_sha256', pins.yantra_wasm_sha256], ['created', '2026-10-09']], cells }, { embedAll: true, name: file })).text);
   index.push({ file: file + '.isas', title });
+}
+// images.isas: a rich note and a cell whose saved output carries an image and a sanitised SVG (a fixture: the image
+// channel waits on an in-memory patra root in yantra-wasm). Running it today returns no images, so the page shows the mismatch.
+{
+  const fx = (f) => readFileSync(join(root, 'test/fixtures', f));
+  const { imageParts } = await import('../kernel/parts.mjs');
+  const base = outputOf(rows['print_x.t1']);
+  const imgs = imageParts([{ name: 'a.png', bytes: new Uint8Array(fx('small.png')) }, { name: 'b.svg', bytes: new Uint8Array(fx('ok.svg')) }]).parts;
+  const out = [base[0], ...imgs, base[base.length - 1]];
+  const note = ['# बृहस्पतिः notes', '', 'A note is **Markdown** (a subset): *emphasis*, `code`, [a link](https://github.com/paramtatv/sassembly), lists:', '', '- headings, emphasis, lists', '- code spans and blocks', '- tables, links, images by relative path', '',
+    '| part | MIME type |', '|---|---|', '| text | text/plain |', '| picture | image/png, image/jpeg |', '| vector | image/svg+xml |', '', 'Raw HTML such as <b>this</b> is shown as text, never run.'].join('\n');
+  writeFileSync(join(root, 'examples/images.isas'), (await write({ header: [['title', 'चित्राणि'], ['stage1_sha256', pins.stage1_sha256], ['yantra_wasm_sha256', pins.yantra_wasm_sha256], ['created', '2026-10-09']],
+    cells: [{ kind: 'note', body: note, output: null }, { kind: 'code', body: readFileSync(join(root, 'cells/print_x.t1'), 'utf8').replace(/\n+$/, ''), output: out }] }, { embedAll: true, name: 'images' })).text);
+  index.push({ file: 'images.isas', title: 'चित्राणि' });
 }
 const all = Object.keys(rows).map((k) => k.replace('.t1', ''));
 if (all.some((n) => !seen.has(n)) || seen.size !== all.length) throw new Error('a cell is in no notebook');
