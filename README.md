@@ -37,3 +37,19 @@ a 512 MiB heap runs in 553,721,872 octets on both; cells/heap_over_64mib.t1 writ
 wasm32 would refuse a guest RAM above 4 GiB; nothing here is near it.
 
 Licence. This repository is MIT (LICENSE), except the vendored `yantra_wasm.wasm` (in `vendor/` and `docs/vendor/`), which is AGPL-3.0-only like its source crate `crates/yantra-wasm` in the public paramtatv/sassembly v1.0.1. See `vendor/NOTICE` for the corresponding source and build command, and `vendor/LICENSE-AGPL-3.0` for the text. The native `yantra-run` is built from the same public tag and is not committed here.
+
+Phase 1b: the JupyterLite kernel. `jupyterlite/` is a JupyterLite kernel extension (plain JS, no kernel
+logic of its own): display name बृहस्पति, kernelspec name `brihaspati`. `execute_request` runs `kernel/core.mjs`
+(the same file `kernel/cell.mjs` uses) in a module Web Worker: stdout stream with the cell's output, then an
+`execute_result` (`application/json` and `text/plain`) holding `status`, `steps_compile`, `steps_run`. A refusal
+(finisher status 853, 860, 861, 862; their Sanskrit names are copied from the compiler's ir.t1 into `jupyterlite/lib/refusals.js` by `tools/gen-refusals.py`) or a driver
+refusal (`CellShapeRefused`, compile failure) comes back as an `error` with `ename` = the name and `evalue` = the code
+(or the reason).
+
+    sh tools/build-site.sh                       # static site in site/ (git-ignored); venv needs jupyterlite-core, jupyterlab, jupyter-builder, node/npm
+    PLAYWRIGHT=<playwright-core dir> node test/notebook.mjs   # headless Chromium: 3 cells == cells/expected.jsonl
+
+The site is about 70 MB (the JupyterLab application; the kernel assets, `site/brihaspati/`, are 1.1 MB). It carries no
+Pyodide: बृहस्पति is its only kernel. Browser memory: the compile asks the guest for 640 MiB of wasm memory; Chromium
+153 (headless, desktop) grants it, compiling a cell in about 9 s in a worker, and the test and `test/site.py` run it
+on every cell shown. A phone browser may refuse a 640 MiB `WebAssembly.Memory`; that is untested.
