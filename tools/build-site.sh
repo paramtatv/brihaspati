@@ -5,6 +5,8 @@
 set -eu
 cd "$(dirname "$0")/.."
 test -f vendor/stage1.elf || sh kernel/fetch-stage1.sh
+# stamp the extension's source hash into the bundle, so the test can tell a stale bundle
+printf "export const SRC_SHA256 = '%s';\n" "$(cat jupyterlite/lib/index.js jupyterlite/lib/refusals.js | sed -e '/^import { SRC_SHA256 }/d' -e '/^export { SRC_SHA256 };$/d' | sha256sum | cut -d' ' -f1)" > jupyterlite/lib/srchash.js
 ( cd jupyterlite && npm install --no-audit --no-fund && jupyter labextension build . )
 python3 tools/make-notebook.py
 rm -rf site

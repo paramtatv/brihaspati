@@ -33,6 +33,9 @@ for (const [pub, key] of [['stage1.elf', 'stage1_sha256'], ['yantra_wasm.wasm', 
 const extDir = join(site, 'extensions/brihaspati-jupyterlite-kernel/static');
 const extJs = existsSync(extDir) ? readdirSync(extDir).filter((f) => f.endsWith('.js')).map((f) => readFileSync(join(extDir, f), 'utf8')).join('\n') : '';
 check(Object.values(REFUSALS).every((n) => extJs.includes(n)) && extJs.includes('BrihaspatiTimeout'), 'site kernel extension carries the current refusal names and worker guards');
+const strip = (f) => readFileSync(join(root, 'jupyterlite/lib', f), 'utf8').split('\n').filter((l) => !/^import \{ SRC_SHA256 \}/.test(l) && l !== 'export { SRC_SHA256 };').join('\n');
+const srcSha = sha(Buffer.from(strip('index.js') + strip('refusals.js')));
+check(extJs.includes(srcSha), `site extension bundle carries the sha256 of jupyterlite/lib/index.js + refusals.js (${srcSha.slice(0, 12)})`);
 const nbSite = JSON.parse(readFileSync(join(site, 'files/demo.ipynb'), 'utf8'));
 check(isDeepStrictEqual(nbSite.cells.map((c) => c.source), cells.map((c) => readFileSync(join(root, 'cells', c), 'utf8'))), `site notebook has the ${cells.length} cells of cells/*.t1`);
 if (bad) process.exit(1);
