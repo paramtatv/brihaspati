@@ -53,3 +53,22 @@ The site is about 70 MB (the JupyterLab application; the kernel assets, `site/br
 Pyodide: बृहस्पति is its only kernel. Browser memory: the compile asks the guest for 640 MiB of wasm memory; Chromium
 153 (headless, desktop) grants it, compiling a cell in about 9 s in a worker, and the test and `test/site.py` run it
 on every cell shown. A phone browser may refuse a 640 MiB `WebAssembly.Memory`; that is untested.
+
+Worker failures. A cell runs in one worker at a time; a new run first terminates a live one, so two 640 MiB
+workers never stack. A worker that dies is reported as `BrihaspatiWorkerDied`, one that does not answer within
+180 s as `BrihaspatiTimeout`; a run that reaches its 4,000,000,000-step budget is `StepLimitExceeded`; a failed
+guest-RAM allocation says how many MiB it wanted. Restarting the kernel terminates its worker. JupyterLite's
+interrupt never reaches the kernel, so interrupting a running cell ends it only through the timeout.
+The wasm is AGPL-3.0-only: the kernel's banner and Help links, and the page footer of the demo, point to its
+source (sassembly v1.0.1) and to `NOTICE`.
+
+Known limits of phase 1b.
+- Fixed entry: a cell must be module शृङ्खला with the entry routine named in `kernel/pins.json` (the v1.0.1 image links
+  one fixed entry); anything else is `CellShapeRefused`. There is no multi-cell state and no cell-to-cell import.
+- Compile errors carry no source position: a compile failure is reported as `compile` with the engine's status and halt text.
+- Per-cell cost: every cell starts a fresh engine and compiles from scratch, about 70 to 720 million guest steps
+  (about 9 s on a desktop Chromium; the 640 MiB compile memory is allocated and released per cell).
+
+Tests. `node test/agree.mjs` (native == expected == wasm, 19 cells), `node test/steplimit.mjs`,
+`PLAYWRIGHT=... node test/notebook.mjs` (all 19 cells in the notebook with exact output equality, two cells run
+natively during the test, the site checked against this source by hash, page errors fail, killed and hung workers).

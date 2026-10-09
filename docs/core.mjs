@@ -30,7 +30,7 @@ export async function sha256(bytes) {
 const indexOfSeq = (a, seq) => { outer: for (let i = 0; i + seq.length <= a.length; i++) { for (let j = 0; j < seq.length; j++) if (a[i + j] !== seq[j]) continue outer; return i; } return -1; };
 
 // stage1, wasm: Uint8Array. src: string. pins: kernel/pins.json. Returns the same row cell.mjs prints.
-export async function compileAndRun(stage1, wasm, src, pins, { checkPins = true } = {}) {
+export async function compileAndRun(stage1, wasm, src, pins, { checkPins = true, runSteps = RUN_STEPS } = {}) {
   if (checkPins) for (const [b, k] of [[stage1, 'stage1_sha256'], [wasm, 'yantra_wasm_sha256']]) {
     const got = await sha256(b);
     if (got !== pins[k]) return { error: 'PinMismatch', what: k, got };
@@ -56,7 +56,11 @@ export async function compileAndRun(stage1, wasm, src, pins, { checkPins = true 
     put(e.yantra_alloc, elf);
     put(e.yantra_input_alloc, input);          // 0 bytes clears the previous run's slab
     put(e.yantra_input_name_alloc, name);
-    const code = e.yantra_run(ram, budget);
+    let code;
+    try { code = e.yantra_run(ram, budget); }
+    catch (err) {   // the guest RAM is a Vec the engine allocates in wasm linear memory; a failed grow traps
+      throw new Error(`could not allocate ${Math.ceil(ram / 2 ** 20)} MiB of guest RAM (${err && err.message ? err.message : err})`);
+    }
     const p = e.yantra_out_ptr(), n = e.yantra_out_len(), h = e.yantra_halt_ptr(), hn = e.yantra_halt_len();
     const out = mem().slice(p, p + n);     // raw octets: the sink holds a binary ELF
     const halt = dec.decode(mem().slice(h, h + hn));
@@ -73,7 +77,14 @@ export async function compileAndRun(stage1, wasm, src, pins, { checkPins = true 
   if (off < 0 || c.status !== 1200) return { error: 'compile', compile_status: c.status, halt: c.halt };
   const elf = c.out.slice(off, c.out.length - 1);   // one marker octet each side of the ELF
   const ram = ramFor(elf);
-  const r = run(elf, ram, RUN_STEPS, new Uint8Array(0), new Uint8Array(0));
+  if (ram > 2 ** 32) return { error: 'RamTooLarge', why: `the emitted image needs ${Math.ceil(ram / 2 ** 20)} MiB of guest RAM; wasm32 holds at most 4096 MiB` };
+  const r = run(elf, ram, runSteps, new Uint8Array(0), new Uint8Array(0));
+  if (typeof r.status === 'string' && r.status.startsWith('halt:')) {   // the engine stopped the run; name it
+    const code = Number(r.status.slice(5));
+    return code === 5
+      ? { error: 'StepLimitExceeded', why: `the cell did not finish within ${runSteps} steps`, halt: r.halt }
+      : { error: 'EngineHalt', why: `the engine halted the run: ${r.halt} (code ${code})`, halt: r.halt };
+  }
   return {
     elf, elf_sha256: await sha256(elf), status: r.status, output: dec.decode(r.out), output_hex: hex(r.out),
     steps_compile: c.steps, steps_run: r.steps, ram_run: ram, high_water_run: r.water,

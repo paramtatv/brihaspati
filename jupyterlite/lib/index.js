@@ -14,8 +14,9 @@ self.onmessage = async (ev) => {
   const { base, src } = ev.data;
   try {
     const core = await import(base + 'core.mjs');
-    const get = async (n) => new Uint8Array(await (await fetch(base + n)).arrayBuffer());
-    const pins = await (await fetch(base + 'pins.json')).json();
+    const fetchOk = async (n) => { const r = await fetch(base + n); if (!r.ok) throw new Error(n + ': HTTP ' + r.status); return r; };
+    const get = async (n) => new Uint8Array(await (await fetchOk(n)).arrayBuffer());
+    const pins = await (await fetchOk('pins.json')).json();
     const [stage1, wasm] = await Promise.all([get('stage1.elf'), get('yantra_wasm.wasm')]);
     const row = await core.compileAndRun(stage1, wasm, src, pins);
     delete row.elf;
@@ -23,12 +24,32 @@ self.onmessage = async (ev) => {
   } catch (err) { self.postMessage({ ok: false, message: String((err && err.message) || err) }); }
 };`;
 
-function runInWorker(base, src) {
+// ONE worker at a time per page: a new run first terminates any live one, so two 640 MiB compiles never stack.
+// A worker that dies (error, OOM) or never answers ends the cell with a named error; it is always terminate()d.
+const TIMEOUT_MS = 180000;   // a cell compiles in about 9 s on a desktop; 15 s with a 512 MiB heap
+let live = null;
+export function stopWorker() { if (live) { live.stop(new Error('stopped')); } }
+function runInWorker(base, src, timeoutMs) {
+  stopWorker();
   const url = URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' }));
   const w = new Worker(url, { type: 'module' });
   return new Promise((resolve, reject) => {
-    w.onmessage = (ev) => { w.terminate(); URL.revokeObjectURL(url); ev.data.ok ? resolve(ev.data.row) : reject(new Error(ev.data.message)); };
-    w.onerror = (ev) => { w.terminate(); URL.revokeObjectURL(url); reject(new Error(ev.message || 'worker failed')); };
+    let timer = null;
+    const handle = {
+      stop(err) {
+        if (live !== handle) return;
+        live = null; clearTimeout(timer); w.terminate(); URL.revokeObjectURL(url); reject(err);
+      },
+    };
+    live = handle;
+    timer = setTimeout(() => { const e = new Error(`no answer after ${timeoutMs} ms; the worker was terminated`); e.ename = 'BrihaspatiTimeout'; handle.stop(e); }, timeoutMs);
+    w.onmessage = (ev) => {
+      if (live !== handle) return;
+      live = null; clearTimeout(timer); w.terminate(); URL.revokeObjectURL(url);
+      ev.data.ok ? resolve(ev.data.row) : reject(new Error(ev.data.message));
+    };
+    const died = (ev) => { const e = new Error('the worker died (' + ((ev && ev.message) || 'out of memory?') + ')'); e.ename = 'BrihaspatiWorkerDied'; handle.stop(e); };
+    w.onerror = died; w.onmessageerror = died;
     w.postMessage({ base, src });
   });
 }
@@ -38,8 +59,13 @@ export class BrihaspatiKernel extends BaseKernel {
     return {
       implementation: 'brihaspati', implementation_version: '0.1.0',
       language_info: { name: 'sassembly', version: '1.0.1', mimetype: 'text/plain', file_extension: '.t1', codemirror_mode: 'text' },
-      banner: 'बृहस्पति: T1 cells compiled by the self-hosted Sassembly v1.0.1 compiler on yantra-wasm',
-      help_links: [], protocol_version: '5.3', status: 'ok',
+      banner: 'बृहस्पति: T1 cells compiled by the self-hosted Sassembly v1.0.1 compiler on yantra-wasm. '
+        + 'yantra_wasm.wasm is AGPL-3.0-only; source: https://github.com/paramtatv/sassembly/tree/v1.0.1 ; notice: '
+        + URLExt.join(PageConfig.getBaseUrl(), 'brihaspati/NOTICE'),
+      help_links: [
+        { text: 'yantra-wasm source (AGPL-3.0-only), sassembly v1.0.1', url: 'https://github.com/paramtatv/sassembly/tree/v1.0.1' },
+        { text: 'NOTICE', url: URLExt.join(PageConfig.getBaseUrl(), 'brihaspati/NOTICE') },
+      ], protocol_version: '5.3', status: 'ok',
     };
   }
 
@@ -51,8 +77,9 @@ export class BrihaspatiKernel extends BaseKernel {
     };
     const base = URLExt.join(PageConfig.getBaseUrl(), 'brihaspati/');
     let row;
-    try { row = await runInWorker(base, content.code.replace(/^\s*\n/, '').replace(/\s+$/, '') + '\n'); }
-    catch (err) { return fail('BrihaspatiError', String(err.message || err)); }
+    const timeoutMs = Number(globalThis.__brihaspatiTimeoutMs) || TIMEOUT_MS;   // the global is a test hook
+    try { row = await runInWorker(base, content.code.replace(/^\s*\n/, '').replace(/\s+$/, '') + '\n', timeoutMs); }
+    catch (err) { return fail(err.ename || 'BrihaspatiError', String(err.message || err)); }
     if (row.error) return fail(row.error, row.why || (row.error === 'compile' ? 'compile status ' + row.compile_status + ' ' + (row.halt || '') : JSON.stringify(row)));
     if (row.output) this.stream({ name: 'stdout', text: row.output });
     const name = REFUSALS[row.status];
@@ -65,6 +92,10 @@ export class BrihaspatiKernel extends BaseKernel {
     });
     return { status: 'ok', execution_count: count, user_expressions: {} };
   }
+
+  // A restart or shutdown disposes the kernel: end its worker. (JupyterLite's interrupt does not reach the
+  // kernel object, so an interrupt of a running cell ends only through the timeout.)
+  dispose() { stopWorker(); super.dispose(); }
 
   async completeRequest() { return { matches: [], cursor_start: 0, cursor_end: 0, metadata: {}, status: 'ok' }; }
   async inspectRequest() { return { status: 'ok', found: false, data: {}, metadata: {} }; }
