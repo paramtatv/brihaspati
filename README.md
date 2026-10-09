@@ -1,8 +1,8 @@
 # बृहस्पति
 
-[![बृहस्पति: three notebook cells (a print, a compute cell, a refusal) and the web demo](docs/media/brihaspati-demo.gif)](docs/media/brihaspati-demo.mp4)
+[![बृहस्पति: the notebook page running a print, a compute cell and a refusal](docs/media/brihaspati-demo.gif)](docs/media/brihaspati-demo.mp4)
 
-*A 1-minute screen recording: the बृहस्पति kernel in JupyterLite runs three cells (a print, a compute cell showing status and steps, a refusal named in Sanskrit), then the web demo runs one cell. Click for the mp4.*
+*A 1-minute screen recording of the notebook page: a print, a compute cell showing status and steps, a refusal named in Sanskrit. Click for the mp4.*
 
 
 Phase 1a: a T1 cell is compiled by the self-hosted Sassembly v1.0.1 compiler image running on
@@ -43,37 +43,35 @@ wasm32 would refuse a guest RAM above 4 GiB; nothing here is near it.
 
 Licence. This repository is MIT (LICENSE), except the vendored `yantra_wasm.wasm` (in `vendor/` and `docs/vendor/`), which is AGPL-3.0-only like its source crate `crates/yantra-wasm` in the public paramtatv/sassembly v1.0.1. See `vendor/NOTICE` for the corresponding source and build command, and `vendor/LICENSE-AGPL-3.0` for the text. The native `yantra-run` is built from the same public tag and is not committed here.
 
-Phase 1b: the JupyterLite kernel. `jupyterlite/` is a JupyterLite kernel extension (plain JS, no kernel
-logic of its own): display name बृहस्पति, kernelspec name `brihaspati`. `execute_request` runs `kernel/core.mjs`
-(the same file `kernel/cell.mjs` uses) in a module Web Worker: stdout stream with the cell's output, then an
-`execute_result` (`application/json` and `text/plain`) holding `status`, `steps_compile`, `steps_run`. A refusal
-(finisher status 853, 860, 861, 862; their Sanskrit names are copied from the compiler's ir.t1 into `jupyterlite/lib/refusals.js` by `tools/gen-refusals.py`) or a driver
-refusal (`CellShapeRefused`, compile failure) comes back as an `error` with `ename` = the name and `evalue` = the code
-(or the reason).
+The notebook page. `docs/` is the notebook, served at https://paramtatv.github.io/brihaspati and built by
+`sh tools/build-docs.sh`: cells of two kinds (code and note), edit, run a cell, run all, add, delete and move cells,
+open and save `.isas` files (File API), and a saved-vs-rerun mismatch badge on every code cell. The UI is Sanskrit
+first with an en/hi toggle. One worker at a time runs `kernel/core.mjs` (the same file `kernel/cell.mjs` uses). The page
+JavaScript is about 26 KB, without the wasm and the compiler image.
 
-    sh tools/build-site.sh                       # static site in site/ (git-ignored); venv needs jupyterlite-core, jupyterlab, jupyter-builder, node/npm
-    PLAYWRIGHT=<playwright-core dir> node test/notebook.mjs   # headless Chromium: 3 cells == cells/expected.jsonl
+The `.isas` format, version 1 (reference parser and writer: `kernel/isas.mjs`; the marker words `कोष्ठः`, `प्रकारः`,
+`फलम्` are copied from the format spec into `kernel/isas-names.mjs` by `tools/gen-isas-names.py`). Line 1 is `ISAS 1`; header
+lines `key: value` (`title`, `stage1_sha256`, `yantra_wasm_sha256`, `created`; unknown keys are kept); a cell is a marker
+line `॥ कोष्ठः N code|note ॥` and its body; a code cell may be followed by `॥ फलम् ॥` and its saved output. A reader refuses by
+name: `IsasNotAnIsasFile`, `IsasUnknownMajorVersion`, `IsasMalformedHeader`, `IsasBadCellMarker`, `IsasCellNumberOutOfOrder`,
+`IsasOutputOnNote`, `IsasBadOutput`; the writer refuses `IsasUnwritableBody`, `IsasUnknownCellKind`. `examples/*.isas` holds
+the 19 cells as three notebooks, with the native runner's outputs saved in them. The output encoding is isolated in
+`encodeOutput` and `decodeOutput`.
 
-The site is about 70 MB (the JupyterLab application; the kernel assets, `site/brihaspati/`, are 1.1 MB). It carries no
-Pyodide: बृहस्पति is its only kernel. Browser memory: the compile asks the guest for 640 MiB of wasm memory; Chromium
-153 (headless, desktop) grants it, compiling a cell in about 9 s in a worker, and the test and `test/site.py` run it
-on every cell shown. A phone browser may refuse a 640 MiB `WebAssembly.Memory`; that is untested.
+A refusal is named in Sanskrit, copied from the compiler's `ir.t1` into `kernel/refusals.mjs` by `tools/gen-refusals.py`
+(finisher status 853, 860, 861, 862). A driver refusal (`CellShapeRefused`, `StepLimitExceeded`, compile failure) is shown by name.
 
-Worker failures. A cell runs in one worker at a time; a new run first terminates a live one, so two 640 MiB
-workers never stack. A worker that dies is reported as `BrihaspatiWorkerDied`, one that does not answer within
-180 s as `BrihaspatiTimeout`; a run that reaches its 4,000,000,000-step budget is `StepLimitExceeded`; a failed
-guest-RAM allocation says how many MiB it wanted. Restarting the kernel terminates its worker. JupyterLite's
-interrupt never reaches the kernel, so interrupting a running cell ends it only through the timeout.
-The wasm is AGPL-3.0-only: the kernel's banner and Help links, and the page footer of the demo, point to its
-source (sassembly v1.0.1) and to `NOTICE`.
+Worker failures. A cell runs in one worker at a time; a new run first terminates a live one, so two 640 MiB workers never
+stack. A worker that dies is `BrihaspatiWorkerDied`, one that does not answer within 180 s is `BrihaspatiTimeout`
+("slow device?"); a run that reaches its 4,000,000,000-step budget is `StepLimitExceeded`; a failed guest-RAM allocation says
+how many MiB it wanted. The wasm is AGPL-3.0-only: the page footer links its source (sassembly v1.0.1) and `NOTICE`.
+Chromium on a desktop grants the 640 MiB compile memory (about 9 s a cell); a phone browser is untested.
 
-Known limits of phase 1b.
-- Fixed entry: a cell must be module शृङ्खला with the entry routine named in `kernel/pins.json` (the v1.0.1 image links
-  one fixed entry); anything else is `CellShapeRefused`. There is no multi-cell state and no cell-to-cell import.
-- Compile errors carry no source position: a compile failure is reported as `compile` with the engine's status and halt text.
-- Per-cell cost: every cell starts a fresh engine and compiles from scratch, about 70 to 720 million guest steps
-  (about 9 s on a desktop Chromium; the 640 MiB compile memory is allocated and released per cell).
+Known limits. Fixed entry: a cell must be module शृङ्खला with the entry routine named in `kernel/pins.json`
+(anything else is `CellShapeRefused`); no state or import between cells. Compile errors carry no source position. Every cell
+starts a fresh engine and compiles from scratch, about 70 to 720 million guest steps.
 
-Tests. `node test/agree.mjs` (native == expected == wasm, 19 cells), `node test/steplimit.mjs`,
-`PLAYWRIGHT=... node test/notebook.mjs` (all 19 cells in the notebook with exact output equality, two cells run
-natively during the test, the site checked against this source by hash, page errors fail, killed and hung workers).
+Tests. `node test/agree.mjs` (native == expected == wasm, 19 cells), `node test/isas.mjs` (round trips and every refusal),
+`node test/steplimit.mjs`, `PLAYWRIGHT=<playwright-core dir> node test/isas-page.mjs` (headless Chromium: each example opened,
+Run all, every result equal to native; save, reopen, a doctored saved output flagged, worker failures, a live native cell,
+page errors fail).

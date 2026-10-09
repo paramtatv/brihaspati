@@ -1,6 +1,2 @@
 vendor/stage1.elf
 vendor/yantra-run
-jupyterlite/node_modules/
-jupyterlite/labextensions/
-site/
-jupyterlite/lib/srchash.js

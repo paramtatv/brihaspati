@@ -1,6 +1,6 @@
 // बृहस्पति core: compile ONE T1 cell with the pinned Stage 1 image on yantra-wasm, run the
 // emitted ELF on yantra-wasm. Environment-neutral (node and browser): bytes in, a result object out.
-// kernel/cell.mjs (node CLI), the docs/ demo and the JupyterLite kernel all call this one function.
+// kernel/cell.mjs (node CLI) and the docs/ notebook page both call this one function.
 export const RUN_STEPS = 4_000_000_000;   // identical in kernel/native.py
 // The compiler declares a 512 MiB .bss heap and puts its stack above it, so it touches
 // ~537 MB; 256 MiB halts "beyond RAM" (code 12). Pages the compiler never writes cost nothing.
