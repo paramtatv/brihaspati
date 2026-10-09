@@ -1,5 +1,10 @@
 # बृहस्पति
 
+[![बृहस्पति: three notebook cells (a print, a compute cell, a refusal) and the web demo](docs/media/brihaspati-demo.gif)](docs/media/brihaspati-demo.mp4)
+
+*A 1-minute screen recording: the बृहस्पति kernel in JupyterLite runs three cells (a print, a compute cell showing status and steps, a refusal named in Sanskrit), then the web demo runs one cell. Click for the mp4.*
+
+
 Phase 1a: a T1 cell is compiled by the self-hosted Sassembly v1.0.1 compiler image running on
 yantra-wasm (node), and the emitted program runs on yantra-wasm. The result equals the native run
 byte for byte: emitted ELF, output, finisher status, instruction count, guest RAM size and heap high water.
