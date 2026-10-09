@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="sa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>बृहस्पतिः — संस्कृतयन्त्रस्य पुस्तिका</title>
+<meta name="description" content="बृहस्पतिः: संस्कृतयन्त्रस्य (Sassembly) पुस्तिकासाधनम्। कोष्ठः स्वयंसङ्कलितेन १.०.१ सङ्कलकेन सङ्कलितः; विचारके मूलचालने च समानं फलम्।">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Tiro+Devanagari+Sanskrit&family=Tiro+Devanagari+Hindi&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .demo-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:14px 0}
+  .demo-row select{min-height:40px;font:inherit;padding:6px 10px;border:1px solid var(--rule);border-radius:var(--r);background:var(--surface);color:var(--ink)}
+  table.cmp{border-collapse:collapse;width:100%;font-family:"IBM Plex Mono",monospace;font-size:14px}
+  table.cmp th,table.cmp td{border-bottom:1px solid var(--rule);padding:6px 10px;text-align:left}
+  table.cmp td.ok{color:var(--teal);font-weight:600} table.cmp td.bad{color:#B3261E;font-weight:600}
+  pre.src{margin:0;padding:14px;overflow:auto;max-height:340px}
+  .prose p{max-width:70ch;margin:0 0 12px}
+</style>
+<script src="assets/theme.js"></script>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap masthead__in">
+    <a class="brand" href="index.html"><span class="brand__deva">बृहस्पतिः</span><span class="brand__latin">Brihaspati</span></a>
+    <span class="mark" aria-hidden="true">॥</span>
+    <nav class="nav" aria-label="मुख्यम्">
+      <a href="#demo" data-i18n="nav.demo">प्रदर्शनम्</a>
+      <a href="https://github.com/paramtatv/brihaspati" data-i18n="nav.repo">कोषः</a>
+      <a href="https://paramtatv.github.io/sassembly/" data-i18n="nav.sass">संस्कृतयन्त्रम्</a>
+    </nav>
+    <label class="sr-only" for="lang">भाषा</label>
+    <select class="langpick" id="lang"><option value="sa">संस्कृतम्</option><option value="en">English</option><option value="hi">हिन्दी</option></select>
+    <button class="themetoggle" type="button" aria-pressed="false" aria-label="Switch to dark theme">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</header>
+<main>
+  <section class="wrap prose" style="padding-top:28px">
+    <p class="eyebrow">phase 1a · Sassembly v1.0.1</p>
+    <h1 data-i18n="h1">बृहस्पतिः</h1>
+    <p data-i18n="lead">संस्कृतयन्त्रस्य (Sassembly) पुस्तिकासाधनम्। पुस्तिकायाः प्रत्येकः कोष्ठः स्वयं संस्कृतयन्त्रेण लिखितेन १.०.१ सङ्कलकेन सङ्कलितो भवति, तस्मिन्नेव यन्त्रे चलति च। फलम् — उत्पादः, समाप्तिस्थितिः, पदसङ्ख्या — विचारके मूलचालने च अक्षरशः समानम्।</p>
+    <p data-i18n="phase">अस्मिन् प्रथमे चरणे (१क) कोष्ठनिर्वाहकः सिद्धः, तं स्वयं परीक्षस्व। पुस्तिकासाधनं (JupyterLite) द्वितीये चरणे।</p>
+  </section>
+  <section class="wrap prose" id="demo">
+    <h2 data-i18n="demo.h">प्रत्यक्षं प्रदर्शनम्</h2>
+    <p data-i18n="demo.p">सङ्कलकबिम्बं यन्त्रं च तव विचारके चलतः (सर्वरः किमपि न चालयति)। कोष्ठं चिनु, चालय; दक्षिणे मूलचालनस्य (native) अपेक्षितानि मूल्यानि दृश्यन्ते। सङ्कलनाय सुमारेण ६४० MiB अतिथिस्मृतिः अपेक्ष्यते।</p>
+    <div class="demo-row">
+      <label for="cell" data-i18n="demo.cell">कोष्ठः</label><select id="cell"></select>
+      <button class="btn btn--solid btn--sm" id="run" type="button" disabled data-i18n="demo.run">चालय ▸</button>
+      <span id="status" data-busy="…" aria-live="polite"></span>
+    </div>
+    <div class="panel"><pre class="code-mono src" id="src"></pre></div>
+    <div id="result" hidden style="margin-top:18px">
+      <p id="verdict" style="font-weight:600" data-same="विचारके = मूलचालनम्, सर्वाणि क्षेत्राणि समानानि / browser = native, every field equal" data-diff="भेदः दृष्टः / DIFFERENCE"></p>
+      <table class="cmp"><thead><tr><th></th><th data-i18n="col.browser">विचारकः</th><th data-i18n="col.native">मूलचालनम्</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+    </div>
+  </section>
+  <section class="wrap prose" style="padding-bottom:40px">
+    <h2 data-i18n="how.h">स्वयं चालय</h2>
+    <p><code>git clone https://github.com/paramtatv/brihaspati; cd brihaspati; sh kernel/fetch-stage1.sh; node test/agree.mjs</code></p>
+    <p data-i18n="how.p">अनुज्ञापत्रम् MIT। यन्त्रं सङ्कलकश्च paramtatv/sassembly v1.0.1 इत्यस्मात्।</p>
+  </section>
+</main>
+<footer class="foot"><div class="wrap foot__in">
+  <span class="foot__deva">बृहस्पतिः</span><span class="foot__spacer">MIT</span>
+  <a href="https://github.com/paramtatv/brihaspati">GitHub</a>
+  <a href="https://github.com/paramtatv/sassembly">paramtatv/sassembly</a>
+  <a href="https://paramtatv.github.io/sassembly/">paramtatv.github.io/sassembly</a>
+</div></footer>
+<script>
+(function(){
+  var D={
+   en:{'nav.demo':'Demo','nav.repo':'Repository','nav.sass':'Sassembly','h1':'बृहस्पति (Brihaspati)',
+    'lead':'A notebook kernel for Sassembly. Each notebook cell is compiled by the self-hosted v1.0.1 compiler, and runs on the same engine. The result (output, finisher status, instruction count) is identical in the browser and natively.',
+    'phase':'This is phase 1a: the cell pipeline, verified cell by cell. The JupyterLite kernel is phase 1b.',
+    'demo.h':'Live demo','demo.p':'The compiler image and the engine run in your browser; no server executes anything. Pick a cell and run it; the native expected values are shown beside the result. Compiling needs about 640 MiB of guest memory.',
+    'demo.cell':'Cell','demo.run':'Run ▸','col.browser':'browser','col.native':'native','how.h':'Run it yourself','how.p':'Licence MIT. The engine and the compiler are from paramtatv/sassembly v1.0.1.'},
+   hi:{'nav.demo':'प्रदर्शन','nav.repo':'कोष','nav.sass':'संस्कृतयन्त्रम्','h1':'बृहस्पति',
+    'lead':'संस्कृतयन्त्रम् (Sassembly) के लिए नोटबुक कर्नल। हर कोष्ठ को स्वयं-होस्टेड v1.0.1 कंपाइलर संकलित करता है और उसी इंजन पर चलाता है। परिणाम (आउटपुट, समापन स्थिति, निर्देश-संख्या) ब्राउज़र और नेटिव में बिल्कुल समान है।',
+    'phase':'यह चरण 1क है: कोष्ठ-पाइपलाइन, हर कोष्ठ पर जाँची गई। JupyterLite कर्नल चरण 1ख में है।',
+    'demo.h':'सीधा प्रदर्शन','demo.p':'कंपाइलर इमेज और इंजन आपके ब्राउज़र में चलते हैं; कोई सर्वर कुछ नहीं चलाता। कोष्ठ चुनें और चलाएँ; नेटिव के अपेक्षित मान साथ में दिखते हैं। संकलन के लिए लगभग 640 MiB अतिथि-स्मृति चाहिए।',
+    'demo.cell':'कोष्ठ','demo.run':'चलाएँ ▸','col.browser':'ब्राउज़र','col.native':'नेटिव','how.h':'खुद चलाएँ','how.p':'लाइसेंस MIT। इंजन और कंपाइलर paramtatv/sassembly v1.0.1 से हैं।'}};
+  var sel=document.getElementById('lang'),sa={};
+  document.querySelectorAll('[data-i18n]').forEach(function(n){sa[n.getAttribute('data-i18n')]=n.textContent;});
+  function set(l){document.documentElement.lang=l;document.querySelectorAll('[data-i18n]').forEach(function(n){var k=n.getAttribute('data-i18n');n.textContent=l==='sa'?sa[k]:(D[l][k]||sa[k]);});try{localStorage.setItem('brihaspati-lang',l);}catch(e){}}
+  var s=null;try{s=localStorage.getItem('brihaspati-lang');}catch(e){}
+  if(s&&D[s]){sel.value=s;set(s);}
+  sel.onchange=function(){set(sel.value);};
+})();
+</script>
+<script type="module" src="demo.mjs"></script>
+</body>
+</html>

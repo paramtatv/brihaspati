@@ -1,0 +1,10 @@
+yantra_wasm.wasm is licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only),
+as declared by its source crate, crates/yantra-wasm, in https://github.com/paramtatv/sassembly.
+The full licence text is in LICENSE-AGPL-3.0 next to this file.
+
+Corresponding source: https://github.com/paramtatv/sassembly at tag v1.0.1
+(commit 831e4f0b5f285cefd27d09968e01c5b2fe290afa), crate crates/yantra-wasm.
+Build: cargo build --release --target wasm32-unknown-unknown -p yantra-wasm
+sha256 of this file: 56549f819b40f3d996e6960402380aac0536f40b48299411fe82c13f325f5f7e
+
+Everything else in this repository is MIT (see LICENSE at the repository root).
