@@ -1,6 +1,7 @@
 {
  "stage1_sha256": "71d06d6649a861c1c6205c95a59fd362f48914b377c6ace9e612bef827415480",
  "yantra_wasm_sha256": "da2051650ae71659c9ae11adf07bab1003c2a6cfc5ab14b69bbd8713ec45949c",
+ "yantra_wasm_commit": "ec30af31c2d1956fe9b8d4a0187f2fc32809830e",
  "yantra_run_sha256": "d017240c94631a351acf8141078c6185daa48c1d13bce976952541d03acb7ecc",
  "module": "शृङ्खला",
  "entry": "स्वपरीक्षास्वप्रतिबिम्बम्",
