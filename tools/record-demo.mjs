@@ -35,6 +35,12 @@ const pick = async (file, nth, label) => {
 await pick('arrays-and-output.isas', 0);   // print_x
 await pick('arithmetic.isas', 6);          // loop_sum: status and steps
 await pick('refusals.isas', 0);            // checked add: the Sanskrit refusal name
+// images.isas: the Markdown note, then the png and svg the cell wrote, as saved in the .isas (shown, not rerun: a ~40 s compile)
+await page.selectOption('#examples', 'images.isas');
+await page.waitForFunction(() => window.__nb.cells.length === 2 && document.querySelectorAll('.cell--code .pic').length === 2);
+await page.waitForTimeout(3500);
+await page.locator('.cell--code .pic').first().evaluate((e) => e.scrollIntoView({ block: 'center', behavior: 'smooth' }));
+await page.waitForTimeout(5000);
 await page.selectOption('#lang', 'en'); await page.waitForTimeout(2500);
 await page.selectOption('#lang', 'sa'); await page.waitForTimeout(1500);
 const v = page.video(); await ctx.close(); await browser.close(); server.close();

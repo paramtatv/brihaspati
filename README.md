@@ -1,8 +1,8 @@
 # बृहस्पति
 
-[![बृहस्पति: the notebook page running a print, a compute cell and a refusal](docs/media/brihaspati-demo.gif)](docs/media/brihaspati-demo.mp4)
+[![बृहस्पति: the .isas notebook page running a print, a compute cell and a refusal, then a notebook with images](docs/media/brihaspati-demo.gif)](docs/media/brihaspati-demo.mp4)
 
-*A 1-minute screen recording of the notebook page: a print, a compute cell showing status and steps, a refusal named in Sanskrit. Click for the mp4.*
+*A 70-second screen recording of the notebook page opening `.isas` notebooks: a print, a compute cell showing status and steps, a refusal named in Sanskrit, then `images.isas` with a Markdown note and the PNG and SVG its cell wrote. Click for the mp4.*
 
 
 Phase 1a: a T1 cell is compiled by the self-hosted Sassembly v1.0.1 compiler image running on
