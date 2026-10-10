@@ -1,7 +1,7 @@
 ISAS 1
 title: अङ्कगणितम्
-stage1_sha256: 71d06d6649a861c1c6205c95a59fd362f48914b377c6ace9e612bef827415480
-yantra_wasm_sha256: da2051650ae71659c9ae11adf07bab1003c2a6cfc5ab14b69bbd8713ec45949c
+stage1_sha256: 4e7a9a244e95bdbf759ba4d373e7efc2e6dcd0e383b9123ac63b5a37d20070ca
+yantra_wasm_sha256: a4df01c2aada6d966c7fac1ed288c03a230e2d420d62930dc82f565520b63c98
 created: 2026-10-09
 ॥ कोष्ठः 1 note ॥
 अङ्कगणितम् — Integer arithmetic: wrap-around, shifts, comparisons, a loop. Saved outputs were made by the native runner.
@@ -17,7 +17,7 @@ created: 2026-10-09
     प्रत्यागमनम् २ ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":1,"steps_compile":75625166,"steps_run":47,"refusal":null}
+{"type":"application/x-sassembly-result","status":1,"steps_compile":75625749,"steps_run":47,"refusal":null}
 ॥ कोष्ठः 3 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -30,7 +30,7 @@ created: 2026-10-09
     प्रत्यागमनम् २ ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":1,"steps_compile":74734012,"steps_run":48,"refusal":null}
+{"type":"application/x-sassembly-result","status":1,"steps_compile":74734595,"steps_run":48,"refusal":null}
 ॥ कोष्ठः 4 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -41,7 +41,7 @@ created: 2026-10-09
     प्रत्यागमनम् ल ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":1,"steps_compile":73575149,"steps_run":45,"refusal":null}
+{"type":"application/x-sassembly-result","status":1,"steps_compile":73575732,"steps_run":45,"refusal":null}
 ॥ कोष्ठः 5 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -56,7 +56,7 @@ created: 2026-10-09
     प्रत्यागमनम् अ ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":11,"steps_compile":77327093,"steps_run":54,"refusal":null}
+{"type":"application/x-sassembly-result","status":11,"steps_compile":77327676,"steps_run":54,"refusal":null}
 ॥ कोष्ठः 6 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -68,7 +68,7 @@ created: 2026-10-09
     प्रत्यागमनम् २ ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":2,"steps_compile":74102796,"steps_run":45,"refusal":null}
+{"type":"application/x-sassembly-result","status":2,"steps_compile":74103379,"steps_run":45,"refusal":null}
 ॥ कोष्ठः 7 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -81,7 +81,7 @@ created: 2026-10-09
     प्रत्यागमनम् २ ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":2,"steps_compile":74831748,"steps_run":47,"refusal":null}
+{"type":"application/x-sassembly-result","status":2,"steps_compile":74832331,"steps_run":47,"refusal":null}
 ॥ कोष्ठः 8 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -98,7 +98,7 @@ created: 2026-10-09
     प्रत्यागमनम् ० ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":0,"steps_compile":75897317,"steps_run":1242,"refusal":null}
+{"type":"application/x-sassembly-result","status":0,"steps_compile":75897900,"steps_run":1242,"refusal":null}
 ॥ कोष्ठः 9 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -350,4 +350,4 @@ created: 2026-10-09
     प्रत्यागमनम् ० ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":0,"steps_compile":716229120,"steps_run":21837,"refusal":null}
+{"type":"application/x-sassembly-result","status":0,"steps_compile":716229703,"steps_run":21837,"refusal":null}

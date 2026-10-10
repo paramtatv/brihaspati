@@ -1,7 +1,7 @@
 ISAS 1
 title: चित्राणि
-stage1_sha256: 71d06d6649a861c1c6205c95a59fd362f48914b377c6ace9e612bef827415480
-yantra_wasm_sha256: da2051650ae71659c9ae11adf07bab1003c2a6cfc5ab14b69bbd8713ec45949c
+stage1_sha256: 4e7a9a244e95bdbf759ba4d373e7efc2e6dcd0e383b9123ac63b5a37d20070ca
+yantra_wasm_sha256: a4df01c2aada6d966c7fac1ed288c03a230e2d420d62930dc82f565520b63c98
 created: 2026-10-09
 ॥ कोष्ठः 1 note ॥
 # बृहस्पतिः notes
@@ -417,4 +417,4 @@ Raw HTML such as <b>this</b> is shown as text, never run.
 ॥ फलम् ॥
 {"type":"image/svg+xml","data":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 40 40\" width=\"80\" height=\"80\"><rect width=\"40\" height=\"40\" fill=\"#F4EFE5\"/><circle cx=\"20\" cy=\"20\" r=\"14\" fill=\"#A63A21\"/><text x=\"20\" y=\"25\" font-size=\"14\" text-anchor=\"middle\" fill=\"#fff\">ब</text></svg>"}
 {"type":"image/png","encoding":"base64","data":"iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAIAAADbtmxLAAAAQElEQVR4nO3OwQmAQADEwBUULNvSLWG+98iQAnJt37Od0713R2lIGpKGpCFpSBqShqQhaUgakoakIWlIGpKG5Ae+pwLhA0nl7gAAAABJRU5ErkJggg=="}
-{"type":"application/x-sassembly-result","status":0,"steps_compile":1109417469,"steps_run":31755,"refusal":null}
+{"type":"application/x-sassembly-result","status":0,"steps_compile":1109418052,"steps_run":31755,"refusal":null}

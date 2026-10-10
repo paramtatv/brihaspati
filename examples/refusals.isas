@@ -1,7 +1,7 @@
 ISAS 1
 title: निषेधाः
-stage1_sha256: 71d06d6649a861c1c6205c95a59fd362f48914b377c6ace9e612bef827415480
-yantra_wasm_sha256: da2051650ae71659c9ae11adf07bab1003c2a6cfc5ab14b69bbd8713ec45949c
+stage1_sha256: 4e7a9a244e95bdbf759ba4d373e7efc2e6dcd0e383b9123ac63b5a37d20070ca
+yantra_wasm_sha256: a4df01c2aada6d966c7fac1ed288c03a230e2d420d62930dc82f565520b63c98
 created: 2026-10-09
 ॥ कोष्ठः 1 note ॥
 निषेधाः — The named refusals, and the fixed-entry refusal. Saved outputs were made by the native runner.
@@ -18,7 +18,7 @@ created: 2026-10-09
     प्रत्यागमनम् २ ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":860,"steps_compile":79185743,"steps_run":34,"refusal":{"name":"अतिप्रवाहनिषेधः","code":860}}
+{"type":"application/x-sassembly-result","status":860,"steps_compile":79186326,"steps_run":34,"refusal":{"name":"अतिप्रवाहनिषेधः","code":860}}
 ॥ कोष्ठः 3 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -29,7 +29,7 @@ created: 2026-10-09
     प्रत्यागमनम् ल योगः १ ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":862,"steps_compile":76476210,"steps_run":31,"refusal":{"name":"शून्यविभाजननिषेधः","code":862}}
+{"type":"application/x-sassembly-result","status":862,"steps_compile":76476793,"steps_run":31,"refusal":{"name":"शून्यविभाजननिषेधः","code":862}}
 ॥ कोष्ठः 4 code ॥
 मण्डलम् शृङ्खला ॥
 आयातः अष्टक ।
@@ -41,7 +41,7 @@ created: 2026-10-09
     प्रत्यागमनम् ७ ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":853,"steps_compile":77675217,"steps_run":31,"refusal":{"name":"रिक्तखण्डपठननिषेधः","code":853}}
+{"type":"application/x-sassembly-result","status":853,"steps_compile":77675800,"steps_run":31,"refusal":{"name":"रिक्तखण्डपठननिषेधः","code":853}}
 ॥ कोष्ठः 5 code ॥
 मण्डलम् शृङ्खला ॥
 आयातः अष्टक ।
@@ -54,7 +54,7 @@ created: 2026-10-09
     प्रत्यागमनम् ७ ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":853,"steps_compile":108277849,"steps_run":146,"refusal":{"name":"रिक्तखण्डपठननिषेधः","code":853}}
+{"type":"application/x-sassembly-result","status":853,"steps_compile":108278432,"steps_run":146,"refusal":{"name":"रिक्तखण्डपठननिषेधः","code":853}}
 ॥ कोष्ठः 6 code ॥
 मण्डलम् शृङ्खला ॥
 आयातः अष्टक ।
@@ -67,7 +67,7 @@ created: 2026-10-09
     प्रत्यागमनम् ७ ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":861,"steps_compile":107407816,"steps_run":175,"refusal":{"name":"सीमातीतलेखननिषेधः","code":861}}
+{"type":"application/x-sassembly-result","status":861,"steps_compile":107408399,"steps_run":175,"refusal":{"name":"सीमातीतलेखननिषेधः","code":861}}
 ॥ कोष्ठः 7 code ॥
 मण्डलम् शृङ्खला ॥
 

@@ -5,7 +5,7 @@
 *A 70-second screen recording of the notebook page opening `.isas` notebooks: a print, a compute cell showing status and steps, a refusal named in Sanskrit, then `images.isas` with a Markdown note and the PNG and SVG its cell wrote. Click for the mp4.*
 
 
-Phase 1a: a T1 cell is compiled by the self-hosted Sassembly v1.0.1 compiler image running on
+Phase 1a: a T1 cell is compiled by the self-hosted Sassembly v1.0.2 compiler image running on
 yantra-wasm (node), and the emitted program runs on yantra-wasm. The result equals the native run
 byte for byte: emitted ELF, output, finisher status, instruction count, guest RAM size and heap high water.
 
@@ -18,15 +18,15 @@ byte for byte: emitted ELF, output, finisher status, instruction count, guest RA
 `agree.mjs` first runs a negative control (a flipped field must be reported as a difference), and
 refuses an expected row that was not made by the pinned native binary.
 
-Pins (kernel/pins.json). Everything comes from the PUBLIC repository github.com/paramtatv/sassembly, tag v1.0.1
-(commit 831e4f0b5f285cefd27d09968e01c5b2fe290afa). Compiler image: that release's
-sassembly-v1.0.1-stage1.elf (kernel/fetch-stage1.sh, plain curl). vendor/yantra_wasm.wasm is v1.0.1's interpreter plus the
-in-memory file root (commit ec30af31, recipe and sha256 in vendor/NOTICE: built at the fixed path /tmp/sassembly); the native runner is
-`cargo +1.94.0 build --release --locked -p yantra --bin yantra-run`; both built with
-`RUSTFLAGS=--remap-path-prefix=<checkout>=/sassembly --remap-path-prefix=$HOME/.cargo=/cargo --remap-path-prefix=$HOME/.rustup=/rustup`
-(no local path is embedded). All three are sha256-pinned; the drivers refuse on a mismatch.
+Pins (kernel/pins.json). Everything comes from the PUBLIC repository github.com/paramtatv/sassembly, tag v1.0.2
+(commit b86a24ee576f2bd3a0b4e207bb6d724724f132b3). Compiler image: that release's sassembly-v1.0.2-stage1.elf
+(kernel/fetch-stage1.sh, plain curl; checked against the release's SHA256SUMS-v1.0.2). vendor/yantra_wasm.wasm is the tag's
+crates/yantra-wasm (with the in-memory file root), built at the fixed path /tmp/sassembly (recipe and sha256 in
+vendor/NOTICE; two independent clones reproduce it). The native runner is the release's yantra-run (the
+sassembly-v1.0.2-linux-x86_64 tarball). All three are sha256-pinned; the drivers refuse on a mismatch.
 
-Cell convention. The v1.0.1 image has a fixed entry: it links the corpus into an image whose entry
+Cell convention. The v1.0.2 image keeps its default entry unless the input names one (v1.0.2's entry from the input,
+not used here yet): it links the corpus into an image whose entry
 is one named routine of one named module (both in kernel/pins.json, copied from the compiler source
 by script). A cell must use that module and entry; both drivers refuse any other with
 `CellShapeRefused` (see cells/entry_not_fixed_refused.t1). The cells are existing integer-semantics,
@@ -79,7 +79,7 @@ A refusal is named in Sanskrit, copied from the compiler's `ir.t1` into `kernel/
 Worker failures. A cell runs in one worker at a time; a new run first terminates a live one, so two 640 MiB workers never
 stack. A worker that dies is `BrihaspatiWorkerDied`, one that does not answer within 180 s is `BrihaspatiTimeout`
 ("slow device?"); a run that reaches its 4,000,000,000-step budget is `StepLimitExceeded`; a failed guest-RAM allocation says
-how many MiB it wanted. The wasm is AGPL-3.0-only: the page footer links its source (sassembly v1.0.1) and `NOTICE`.
+how many MiB it wanted. The wasm is AGPL-3.0-only: the page footer links its source (sassembly v1.0.2) and `NOTICE`.
 Chromium on a desktop grants the 640 MiB compile memory (about 9 s a cell); a phone browser is untested.
 
 Known limits. Fixed entry: a cell must be module शृङ्खला with the entry routine named in `kernel/pins.json`

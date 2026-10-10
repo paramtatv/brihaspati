@@ -41,7 +41,7 @@ export async function compileAndRun(stage1, wasm, src, pins, { checkPins = true,
   const srcB = enc.encode(src);
   const firstLine = src.split('\n')[0].trim().split(/\s+/);
   if (firstLine[1] !== pins.module || !src.includes(`सार्वजनिक वृत्तिः ${pins.entry} ददाति`)) {
-    return { error: 'CellShapeRefused', why: `a cell must be module ${pins.module} with entry routine ${pins.entry} (the v1.0.1 image has a fixed entry)` };
+    return { error: 'CellShapeRefused', why: `a cell must be module ${pins.module} with entry routine ${pins.entry} (the default entry of the v1.0.2 image; an entry from the input is not used yet)` };
   }
   const nameB = enc.encode(firstLine[1]);
   const blob = new Uint8Array(nameB.length + 1 + srcB.length + 1);   // `name NUL text NUL`

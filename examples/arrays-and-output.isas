@@ -1,7 +1,7 @@
 ISAS 1
 title: सारण्यः मुद्रणं च
-stage1_sha256: 71d06d6649a861c1c6205c95a59fd362f48914b377c6ace9e612bef827415480
-yantra_wasm_sha256: da2051650ae71659c9ae11adf07bab1003c2a6cfc5ab14b69bbd8713ec45949c
+stage1_sha256: 4e7a9a244e95bdbf759ba4d373e7efc2e6dcd0e383b9123ac63b5a37d20070ca
+yantra_wasm_sha256: a4df01c2aada6d966c7fac1ed288c03a230e2d420d62930dc82f565520b63c98
 created: 2026-10-09
 ॥ कोष्ठः 1 note ॥
 सारण्यः मुद्रणं च — Arrays, the heap and printing. Saved outputs were made by the native runner.
@@ -16,7 +16,7 @@ created: 2026-10-09
 इति
 ॥ फलम् ॥
 {"type":"text/plain","data":"X"}
-{"type":"application/x-sassembly-result","status":7,"steps_compile":73268228,"steps_run":44,"refusal":null}
+{"type":"application/x-sassembly-result","status":7,"steps_compile":73268811,"steps_run":44,"refusal":null}
 ॥ कोष्ठः 3 code ॥
 मण्डलम् शृङ्खला ॥
 आयातः अष्टक ।
@@ -29,7 +29,7 @@ created: 2026-10-09
 इति
 ॥ फलम् ॥
 {"type":"text/plain","data":"XX"}
-{"type":"application/x-sassembly-result","status":7,"steps_compile":74302923,"steps_run":49,"refusal":null}
+{"type":"application/x-sassembly-result","status":7,"steps_compile":74303506,"steps_run":49,"refusal":null}
 ॥ कोष्ठः 4 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -45,7 +45,7 @@ created: 2026-10-09
     प्रत्यागमनम् क अङ्कः ५ अन्तः ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":857,"steps_compile":85103224,"steps_run":42,"refusal":null}
+{"type":"application/x-sassembly-result","status":857,"steps_compile":85103807,"steps_run":42,"refusal":null}
 ॥ कोष्ठः 5 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -55,7 +55,7 @@ created: 2026-10-09
     प्रत्यागमनम् ख अङ्कः ० अन्तः ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":44,"steps_compile":106946539,"steps_run":167,"refusal":null}
+{"type":"application/x-sassembly-result","status":44,"steps_compile":106947122,"steps_run":167,"refusal":null}
 ॥ कोष्ठः 6 code ॥
 मण्डलम् शृङ्खला ॥
 
@@ -71,4 +71,4 @@ created: 2026-10-09
     प्रत्यागमनम् क अङ्कः ५ अन्तः ।
 इति
 ॥ फलम् ॥
-{"type":"application/x-sassembly-result","status":5,"steps_compile":117204063,"steps_run":230702447,"refusal":null}
+{"type":"application/x-sassembly-result","status":5,"steps_compile":117204646,"steps_run":230702447,"refusal":null}

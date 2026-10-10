@@ -27,7 +27,7 @@ first = src.split(b"\n", 1)[0].decode().split()
 entry_decl = "सार्वजनिक वृत्तिः %s ददाति" % pins["entry"]
 if first[:2] != [first[0], pins["module"]] or entry_decl not in src.decode():
     print(json.dumps({"engine": "native", "yantra_run_sha256": pins["yantra_run_sha256"], "stage1_sha256": pins["stage1_sha256"], "error": "CellShapeRefused",
-                      "why": "a cell must be module %s with entry routine %s (the v1.0.1 image has a fixed entry)"
+                      "why": "a cell must be module %s with entry routine %s (the default entry of the v1.0.2 image; an entry from the input is not used yet)"
                              % (pins["module"], pins["entry"])}, ensure_ascii=False))
     sys.exit(3)
 name = first[1]                      # the module name, derived as pack-corpus.py derives it

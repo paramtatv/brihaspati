@@ -1,17 +1,20 @@
-yantra_wasm.wasm is licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only),
-as declared by its source crate, crates/yantra-wasm, in https://github.com/paramtatv/sassembly.
-The full licence text is in LICENSE-AGPL-3.0 next to this file.
+yantra_wasm.wasm and stage1.elf are licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only),
+Copyright (c) 2026 परमतत्व, as their source, paramtatv/sassembly v1.0.2, declares (a commercial licence is available from
+the copyright holder). The full licence text is in LICENSE-AGPL-3.0 next to this file.
 
-Corresponding source: Sassembly commit ec30af31c2d1956fe9b8d4a0187f2fc32809830e, crate crates/yantra-wasm (v1.0.1 plus the
-in-memory patra file root, yantra::patra::MemFs).
-Toolchain: rustup toolchain install 1.94.0 && rustup target add --toolchain 1.94.0 wasm32-unknown-unknown.
-Build: in a checkout of that commit placed at /tmp/sassembly (cargo hashes a path dependency's absolute path into symbol
-names, so the path is part of the recipe), in crates/yantra-wasm:
-cargo +1.94.0 build --release --locked --target wasm32-unknown-unknown, with
-RUSTFLAGS=--remap-path-prefix=/tmp/sassembly=/sassembly --remap-path-prefix=$HOME/.cargo=/cargo --remap-path-prefix=$HOME/.rustup=/rustup
-and no other environment variables (no CARGO_TARGET_DIR, no other RUSTFLAGS).
-sha256 of this file: da2051650ae71659c9ae11adf07bab1003c2a6cfc5ab14b69bbd8713ec45949c (two independent clones built at that path agree)
+yantra_wasm.wasm
+  Corresponding source: https://github.com/paramtatv/sassembly at tag v1.0.2 (commit b86a24ee576f2bd3a0b4e207bb6d724724f132b3),
+  crate crates/yantra-wasm (it includes the in-memory patra file root).
+  Toolchain: rustup toolchain install 1.94.0 && rustup target add --toolchain 1.94.0 wasm32-unknown-unknown.
+  Build: in a checkout of that tag placed at /tmp/sassembly (cargo hashes a path dependency's absolute path into symbol
+  names, so the path is part of the recipe), in crates/yantra-wasm:
+  cargo +1.94.0 build --release --locked --target wasm32-unknown-unknown, with
+  RUSTFLAGS=--remap-path-prefix=/tmp/sassembly=/sassembly --remap-path-prefix=$HOME/.cargo=/cargo --remap-path-prefix=$HOME/.rustup=/rustup
+  and no other environment variables (no CARGO_TARGET_DIR, no other RUSTFLAGS).
+  sha256 of this file: a4df01c2aada6d966c7fac1ed288c03a230e2d420d62930dc82f565520b63c98 (two independent clones built at that path agree)
 
-stage1.elf: public release asset of paramtatv/sassembly v1.0.1 (sassembly-v1.0.1-stage1.elf), MIT.
+stage1.elf
+  The public release asset sassembly-v1.0.2-stage1.elf of paramtatv/sassembly v1.0.2 (verified against SHA256SUMS-v1.0.2);
+  sha256 4e7a9a244e95bdbf759ba4d373e7efc2e6dcd0e383b9123ac63b5a37d20070ca. Source: the same tag.
 
 Everything else in this repository: see NOTICE and LICENSE (AGPL-3.0-only) at the repository root.

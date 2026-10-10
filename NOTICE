@@ -10,16 +10,14 @@ the MIT licence. Those published versions stay available under MIT; AGPL-3.0-onl
 that added this NOTICE.
 
 Files under their own licences (each keeps it; none is relicensed by this repository):
-- vendor/yantra_wasm.wasm, docs/vendor/yantra_wasm.wasm: AGPL-3.0-only, built from the crate crates/yantra-wasm
-  of Sassembly. Corresponding source and the build command are in vendor/NOTICE; the licence text is
-  vendor/LICENSE-AGPL-3.0.
-- docs/vendor/stage1.elf (and vendor/stage1.elf, which kernel/fetch-stage1.sh downloads): MIT,
-  Copyright (c) 2026 Prabhat Kumar Singh. It is the release asset sassembly-v1.0.1-stage1.elf of
-  https://github.com/paramtatv/sassembly.
+- vendor/yantra_wasm.wasm, docs/vendor/yantra_wasm.wasm, docs/vendor/stage1.elf (and vendor/stage1.elf, which
+  kernel/fetch-stage1.sh downloads): AGPL-3.0-only, Copyright (c) 2026 परमतत्व, from paramtatv/sassembly v1.0.2 (the
+  compiler image is the release asset sassembly-v1.0.2-stage1.elf; the wasm is built from the tag). Corresponding source and
+  the build command are in vendor/NOTICE; the licence text is vendor/LICENSE-AGPL-3.0.
 - docs/assets/site.css, docs/assets/theme.js: MIT, Copyright (c) 2026 Prabhat Kumar Singh, from the
   paramtatv/sassembly web pages (gh-pages branch, assets/).
 - kernel/refusals.mjs and docs/refusals.mjs carry refusal names copied by tools/gen-refusals.py from
-  crates/sadhana-t1/src/ir.t1 of paramtatv/sassembly v1.0.1 (MIT).
+  crates/sadhana-t1/src/ir.t1 of paramtatv/sassembly v1.0.2 (AGPL-3.0-only, the same copyright holder).
 
 Made for this repository, under its licence: the test images in test/fixtures/ (generated or written by hand
 for the tests), the screen recordings in docs/media/ (of this repository's own page), and the .isas marker
