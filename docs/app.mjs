@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // बृहस्पति notebook page: cells, run (one worker at a time), open/save .isas. State is plain data; render() redraws.
 import { parse, write, resolveSideFiles, outputOf, textOf, resultOf, sameOutput, IsasError } from './isas.mjs';
 import { partBytes, imageParts } from './parts.mjs';

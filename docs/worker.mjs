@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 import { compileAndRun } from './core.mjs';
 self.onmessage = async (ev) => {
   const { stage1, wasm, src, pins } = ev.data;

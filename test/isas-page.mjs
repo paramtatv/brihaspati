@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // Headless Chromium on docs/: open each examples/*.isas through the file input, Run all, and compare every cell's
 // result EXACTLY with native (cells/expected.jsonl, plus a native run made during this test); save, and reopen the
 // saved file; a doctored saved output is flagged as a mismatch; hung and killed workers end with named errors.

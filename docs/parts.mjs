@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // Output parts. A saved output is an array of parts, one JSON line each, every part with a MIME `type`:
 //   text/plain {data} | image/png, image/jpeg {encoding:'base64', data} or {src, sha256} | image/svg+xml {data} or {src, sha256}
 //   application/x-sassembly-result {status, steps_compile, steps_run, refusal}.   No text/html in v1.

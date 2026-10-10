@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // बृहस्पति phase 1a: compile ONE T1 cell with the pinned Stage 1 compiler image running on
 // yantra-wasm, run the emitted ELF on yantra-wasm, print one JSON line.
 // The native counterpart is kernel/native.sh; the two must agree on every field but wall time.

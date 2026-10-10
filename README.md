@@ -41,7 +41,7 @@ holds about 1.4 GB per compile. The wasm run RAM is sized from the emitted ELF b
 a 512 MiB heap runs in 553,721,872 octets on both; cells/heap_over_64mib.t1 writes 70 MB of it.
 wasm32 would refuse a guest RAM above 4 GiB; nothing here is near it.
 
-Licence. This repository is MIT (LICENSE), except the vendored `yantra_wasm.wasm` (in `vendor/` and `docs/vendor/`), which is AGPL-3.0-only like its source crate `crates/yantra-wasm` in the public paramtatv/sassembly v1.0.1. See `vendor/NOTICE` for the corresponding source and build command, and `vendor/LICENSE-AGPL-3.0` for the text. The native `yantra-run` is built from the same public tag and is not committed here.
+Licence. This repository is AGPL-3.0-only (LICENSE), with a commercial licence available from the copyright holder (COMMERCIAL-LICENSE.md). Commits up to and including e1d80ab were published under MIT and stay MIT as published. Files under their own licences are listed in NOTICE: the vendored `yantra_wasm.wasm` (AGPL-3.0-only, from the crate `crates/yantra-wasm` of Sassembly; corresponding source and build command in `vendor/NOTICE`), the compiler image `stage1.elf` and the site stylesheet and theme script (MIT, from paramtatv/sassembly). The native `yantra-run` is built from public Sassembly and is not committed here.
 
 The notebook page. `docs/` is the notebook, served at https://paramtatv.github.io/brihaspati and built by
 `sh tools/build-docs.sh`: cells of two kinds (code and note), edit, run a cell, run all, add, delete and move cells,

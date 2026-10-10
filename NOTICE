@@ -1,0 +1,24 @@
+बृहस्पति
+Copyright (c) 2026 परमतत्व
+
+This repository is licensed under the GNU Affero General Public License, version 3 only (AGPL-3.0-only);
+the full text is in LICENSE. A commercial licence is also available from the copyright holder, for use
+that the AGPL does not suit: see COMMERCIAL-LICENSE.md.
+
+Earlier versions. Commits up to and including e1d80ab18ca02d2ba15079a55806567e27dd9c68 were published under
+the MIT licence. Those published versions stay available under MIT; AGPL-3.0-only applies from the commit
+that added this NOTICE.
+
+Files under their own licences (each keeps it; none is relicensed by this repository):
+- vendor/yantra_wasm.wasm, docs/vendor/yantra_wasm.wasm: AGPL-3.0-only, built from the crate crates/yantra-wasm
+  of Sassembly. Corresponding source and the build command are in vendor/NOTICE; the licence text is
+  vendor/LICENSE-AGPL-3.0.
+- docs/vendor/stage1.elf (and vendor/stage1.elf, which kernel/fetch-stage1.sh downloads): MIT,
+  Copyright (c) 2026 Prabhat Kumar Singh. It is the release asset sassembly-v1.0.1-stage1.elf of
+  https://github.com/paramtatv/sassembly.
+- docs/assets/site.css, docs/assets/theme.js: MIT, Copyright (c) 2026 Prabhat Kumar Singh, from the
+  paramtatv/sassembly web pages (gh-pages branch, assets/).
+- kernel/refusals.mjs and docs/refusals.mjs carry refusal names copied by tools/gen-refusals.py from
+  crates/sadhana-t1/src/ir.t1 of paramtatv/sassembly v1.0.1 (MIT).
+
+The page loads its web fonts from Google Fonts at run time; no font files are distributed here.

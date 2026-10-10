@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // .isas format v1 with the amendment: round trips (examples, embedded image, side-file image), every refusal by name,
 // SVG sanitising (a hostile SVG), the Markdown subset (no raw HTML), the 64 KB rule.
 import { readFileSync, readdirSync } from 'node:fs';

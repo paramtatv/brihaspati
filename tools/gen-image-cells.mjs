@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // Writes test/image-cells/*.t1: cells that write image files through the patra file window, so the page's
 // image channel is tested with files a PROGRAM wrote (no fixture injection). Every Devanagari word below is
 // copied from sassembly crates/yantra/tests/memfs_parity.rs (file names खपत्रम् and कपत्रम्, the write member,

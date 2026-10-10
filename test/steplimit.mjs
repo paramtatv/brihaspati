@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // A cell that never finishes must come back as the named error StepLimitExceeded, not as "halt:5".
 // The cell is cells/loop_sum.t1 with its counter increment removed; the budget is lowered to 2,000,000 steps for speed.
 import { readFileSync } from 'node:fs';

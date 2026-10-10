@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: AGPL-3.0-only
 # Regenerate cells/expected.jsonl ONLY from native yantra-run (kernel/native.sh). Never from wasm.
 # A cell whose native run prints no JSON row is named and the script exits 1 without replacing expected.jsonl.
 set -eu

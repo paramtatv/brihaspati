@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
 """बृहस्पति phase 1a, native side: compile ONE T1 cell with the Stage 1 image on native yantra-run,
 run the emitted ELF on native yantra-run, print JSON.  The wasm twin is kernel/cell.mjs.
 

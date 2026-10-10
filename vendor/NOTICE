@@ -12,4 +12,4 @@ sha256 of this file: da2051650ae71659c9ae11adf07bab1003c2a6cfc5ab14b69bbd8713ec4
 
 stage1.elf: public release asset of paramtatv/sassembly v1.0.1 (sassembly-v1.0.1-stage1.elf), MIT.
 
-Everything else in this repository is MIT (see LICENSE at the repository root).
+Everything else in this repository: see NOTICE and LICENSE (AGPL-3.0-only) at the repository root.

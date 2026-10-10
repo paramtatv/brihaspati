@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // Sanskrit by default; en and hi on request. Sassembly's own syntax and the file's marker words are never translated.
 const D = {
   sa: { run: 'चालय', runall: 'सर्वं चालय', open: 'उद्घाटय', save: 'रक्ष', new: 'नवम्', addcode: '+ कोष्ठः', addnote: '+ टिप्पणी', up: '↑', down: '↓', del: 'लोपय', kind: 'प्रकारः ⇄',

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // SVG sanitiser: an allowlist re-serialiser. No DOM; node and browser. sanitizeSvg(text) -> a safe SVG string, or null
 // when the text is not an SVG document. Dropped with their whole subtree: script, foreignObject, style, animate*, set,
 // image, a, iframe, object, embed, and any unknown element. Dropped outright: comments, CDATA, DOCTYPE/ENTITY, processing

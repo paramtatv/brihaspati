@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // .isas notebook format, version 1: reference parser and writer. Pure functions, no I/O; node and browser.
 // The marker words come from kernel/isas-names.mjs (copied from the format spec by tools/gen-isas-names.py).
 import { BAR, CELL, OUTPUT } from './isas-names.mjs';

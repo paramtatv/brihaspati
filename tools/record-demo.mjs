@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // Record a ~55 s screen video of the notebook page (headless Chromium, 1280x720); localhost only.
 // usage: PLAYWRIGHT=<playwright-core dir> node tools/record-demo.mjs <outdir>   (serves docs/)
 import { readFileSync, existsSync, mkdirSync } from 'node:fs';

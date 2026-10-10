@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // Markdown subset -> a plain tree (never HTML). Headings, emphasis, lists, code spans and blocks, links, tables, images,
 // block quotes, rules. Raw HTML is ordinary text. The page turns the tree into DOM with textContent only.
 // Block: {t:'h',n,c} {t:'p',c} {t:'ul'|'ol',items:[c]} {t:'pre',lang,v} {t:'table',head:[c],rows:[[c]]} {t:'quote',c} {t:'hr'}

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // बृहस्पति core: compile ONE T1 cell with the pinned Stage 1 image on yantra-wasm, run the
 // emitted ELF on yantra-wasm. Environment-neutral (node and browser): bytes in, a result object out.
 // kernel/cell.mjs (node CLI) and the docs/ notebook page both call this one function.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // examples/*.isas from cells/*.t1 and the NATIVE rows of cells/expected.jsonl (saved outputs are native's).
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

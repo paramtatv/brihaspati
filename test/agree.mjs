@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 // For every cell: run NATIVE (kernel/native.sh) and WASM (kernel/cell.mjs) and require
 // native == expected == wasm on every field except wall time. Exits non-zero on any disagreement.
 // expected.jsonl must be native-made (provenance fields are checked against kernel/pins.json).

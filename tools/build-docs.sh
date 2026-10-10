@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: AGPL-3.0-only
 # Assemble docs/ (the GitHub Pages site) from the repo's pinned files. Run from anywhere.
 set -eu
 cd "$(dirname "$0")/.."
