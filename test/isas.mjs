@@ -28,7 +28,7 @@ for (const f of files) {
 }
 check(ncell === 19, `the examples hold all 19 code cells (${ncell}), plus images.isas`);
 const img = parse(readFileSync(join(dir, 'images.isas'), 'utf8'));
-check(img.cells[1].output.map((p) => p.type).join() === `text/plain,image/png,image/svg+xml,${RESULT}`, 'images.isas: a typed part per line (text, png, svg, result)');
+check(img.cells[1].output.map((p) => p.type).join() === `image/svg+xml,image/png,${RESULT}`, 'images.isas: a typed part per line (svg, png, result: files in name order, कपत्रम् before खपत्रम्)');
 
 // ---- the format -----------------------------------------------------------------------------------------------------
 const ok = `ISAS 1\ntitle: t\nfuture_key: x\n${BAR} ${CELL} 1 code ${BAR}\nbody\n${BAR} ${OUTPUT} ${BAR}\n${R()}\n${BAR} ${CELL} 2 note ${BAR}\nhello\n`;
