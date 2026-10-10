@@ -64,7 +64,7 @@ steps_run, refusal}`. There is no `text/html`. Images under 64 KB are embedded; 
 downloads the notebook and the side files, which go in a folder `<name>.isas.d/`; open the notebook and its side files together).
 A reader refuses by name: `IsasNotAnIsasFile`, `IsasUnknownMajorVersion`, `IsasMalformedHeader`, `IsasBadCellMarker`,
 `IsasCellNumberOutOfOrder`, `IsasOutputOnNote`, `IsasBadOutput`, `IsasUnsupportedType`; a missing or changed side file is
-`IsasMissingSideFile` or `IsasSideFileHashMismatch`; the writer refuses `IsasUnwritableBody`, `IsasUnknownCellKind`.
+`IsasMissingSideFile` or `IsasSideFileHashMismatch`; a .isas over 32 Mi characters or a side file over 16 MiB is `IsasTooLarge`, refused before it is read; the writer refuses `IsasUnwritableBody`, `IsasUnknownCellKind`.
 `examples/*.isas` holds the 19 cells as three notebooks (native outputs saved), plus `images.isas` (a rich note and a cell with a
 png and an svg output). The output encoding is isolated in `encodeOutput` and `decodeOutput`.
 

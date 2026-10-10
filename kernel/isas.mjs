@@ -15,6 +15,7 @@ const isMarkerish = (l) => l.startsWith(`${BAR} ${CELL} `) || l.startsWith(`${BA
 
 // ---- the output encoding lives in encodeOutput / decodeOutput only ----------------------------------------------------
 // An output is an array of parts (kernel/parts.mjs). After the OUTPUT marker: ONE JSON line per part, each with a MIME `type`.
+export const MAX_ISAS = 32 << 20, MAX_SIDE = 16 << 20;  // a larger .isas (characters) or side file (octets) is IsasTooLarge, not read
 export const SIDE_LIMIT = 64 * 1024;            // parts under 64 KB are embedded; larger images go to <name>.isas.d/
 const SRC_RE = /^[^/\\]+\.isas\.d\/\d+\.(png|jpg|svg)$/;
 const isNum = (v) => v === null || Number.isInteger(v);
@@ -52,6 +53,7 @@ export function decodeOutput(lines, at) {
         if (typeof j.data !== 'string') throw bad('data must be a string');
         if (j.type === 'image/svg+xml') { const s = sanitizeSvg(j.data); if (s === null) throw bad('not an SVG document'); return { type: j.type, data: s }; }
         if (j.encoding !== 'base64' || !/^[A-Za-z0-9+/]*={0,2}$/.test(j.data)) throw bad('encoding must be base64');
+        if (sniff(unb64(j.data)) !== j.type) throw bad('the bytes are not a ' + ext.toUpperCase() + ' image');
         return { type: j.type, encoding: 'base64', data: j.data };
       }
       case RESULT: {
@@ -68,6 +70,7 @@ export { partsOf as outputOf, textOf, resultOf, sameParts as sameOutput } from '
 
 // text -> { version, header: [[key, value], ...] (unknown keys kept, in order), cells: [{ kind, body, output|null }] }
 export function parse(text) {
+  if (text.length > MAX_ISAS) throw new IsasError('IsasTooLarge', `the file is over ${MAX_ISAS >> 20} Mi characters`, 1);
   const lines = text.split('\n'); if (lines[lines.length - 1] === '') lines.pop();
   if (!lines.length || !/^ISAS \d+$/.test(lines[0])) throw new IsasError('IsasNotAnIsasFile', 'line 1 must be exactly `ISAS <major>`', 1);
   const version = Number(lines[0].slice(5));
@@ -139,6 +142,7 @@ export async function resolveSideFiles(nb, files) {
   for (const [ci, c] of nb.cells.entries()) for (const p of c.output ?? []) {
     if (p.src === undefined) continue;
     const bytes = files.get(p.src) ?? files.get(p.src.split('/').pop());
+    if (bytes && bytes.length > MAX_SIDE) { p.problem = 'IsasTooLarge'; problems.push({ cell: ci + 1, name: p.problem, src: p.src }); continue; }
     if (!bytes) { p.problem = 'IsasMissingSideFile'; problems.push({ cell: ci + 1, name: p.problem, src: p.src }); continue; }
     if ((await sha256hex(bytes)) !== p.sha256) { p.problem = 'IsasSideFileHashMismatch'; problems.push({ cell: ci + 1, name: p.problem, src: p.src }); continue; }
     if (p.type === 'image/svg+xml') { const s = sanitizeSvg(new TextDecoder().decode(bytes)); if (s === null) { p.problem = 'IsasBadOutput'; continue; } p.bytes = new TextEncoder().encode(s); }

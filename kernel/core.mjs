@@ -6,6 +6,7 @@ export const RUN_STEPS = 4_000_000_000;   // identical in kernel/native.py
 // The compiler declares a 512 MiB .bss heap and puts its stack above it, so it touches
 // ~537 MB; 256 MiB halts "beyond RAM" (code 12). Pages the compiler never writes cost nothing.
 export const COMPILE_RAM = 640 << 20;
+export const FILES_TOTAL = 64 << 20, FILE_MAX = 16 << 20;   // a program's written files
 
 // The RUN RAM is the native runner's rule (Span::Declared), restated: the larger of 20 MiB
 // (DEFAULT_RAM) and the declared extent plus 16 MiB (RAM_HEADROOM); extent = max(vaddr+memsz) - min(vaddr)
@@ -79,9 +80,10 @@ export async function compileAndRun(stage1, wasm, src, pins, { checkPins = true,
   const elf = c.out.slice(off, c.out.length - 1);   // one marker octet each side of the ELF
   const ram = ramFor(elf);
   if (ram > 2 ** 32) return { error: 'RamTooLarge', why: `the emitted image needs ${Math.ceil(ram / 2 ** 20)} MiB of guest RAM; wasm32 holds at most 4096 MiB` };
-  // The program (never the compiler) gets an EMPTY in-memory file root (yantra::patra::MemFs; default caps 64 MiB
-  // total, 16 MiB a file); the files it wrote come back in `files`. Each compileAndRun has its own wasm instance.
-  e.yantra_memfs_enable();
+  // The program (never the compiler) gets an EMPTY in-memory file root (yantra::patra::MemFs); the files it wrote come
+  // back in `files`. Each compileAndRun has its own wasm instance. Caps: FILES_TOTAL octets in all, FILE_MAX a file
+  // (both enforced by the engine, which also allows at most 4096 files), so `files` is bounded.
+  if (e.yantra_memfs_enable_caps(FILES_TOTAL, FILE_MAX) !== 0) throw new Error('memfs caps refused');
   const r = run(elf, ram, runSteps, new Uint8Array(0), new Uint8Array(0));
   const files = [];
   for (let i = 0, n = e.yantra_memfs_count(); i < n; i++) {

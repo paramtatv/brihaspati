@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // बृहस्पति notebook page: cells, run (one worker at a time), open/save .isas. State is plain data; render() redraws.
-import { parse, write, resolveSideFiles, outputOf, textOf, resultOf, sameOutput, IsasError } from './isas.mjs';
+import { parse, write, resolveSideFiles, MAX_ISAS, MAX_SIDE, outputOf, textOf, resultOf, sameOutput, IsasError } from './isas.mjs';
 import { partBytes, imageParts } from './parts.mjs';
 import { mdParse, safeHref, safeRelPath } from './md.mjs';
 import { LANG, setLang, t } from './i18n.mjs';
@@ -153,6 +153,9 @@ $('opennb').onclick = () => $('file').click();
 $('file').onchange = async () => {
   const fs = [...$('file').files]; $('file').value = ''; if (!fs.length) return;
   const main = fs.find((f) => f.name.endsWith('.isas')) || fs[0];   // pick the .isas and its side files together
+  // sizes are checked before anything is read, so a huge file cannot hang the tab
+  const big = fs.find((f) => f.size > (f === main ? MAX_ISAS * 4 : MAX_SIDE));   // MAX_ISAS counts characters; 4 octets each at most
+  if (big) { fail(new IsasError('IsasTooLarge', `${big.name} is ${big.size} octets`, 0)); return; }
   try { const side = new Map(); for (const f of fs) if (f !== main) side.set(f.name, new Uint8Array(await f.arrayBuffer())); await load(await main.text(), side); render(); } catch (e) { fail(e); }
 };
 $('savenb').onclick = async () => {

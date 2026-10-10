@@ -4,10 +4,12 @@ The full licence text is in LICENSE-AGPL-3.0 next to this file.
 
 Corresponding source: Sassembly commit ec30af31c2d1956fe9b8d4a0187f2fc32809830e, crate crates/yantra-wasm (v1.0.1 plus the
 in-memory patra file root, yantra::patra::MemFs).
+Toolchain: rustup toolchain install 1.94.0 && rustup target add --toolchain 1.94.0 wasm32-unknown-unknown.
 Build: in a checkout of that commit placed at /tmp/sassembly (cargo hashes a path dependency's absolute path into symbol
 names, so the path is part of the recipe), in crates/yantra-wasm:
 cargo +1.94.0 build --release --locked --target wasm32-unknown-unknown, with
 RUSTFLAGS=--remap-path-prefix=/tmp/sassembly=/sassembly --remap-path-prefix=$HOME/.cargo=/cargo --remap-path-prefix=$HOME/.rustup=/rustup
+and no other environment variables (no CARGO_TARGET_DIR, no other RUSTFLAGS).
 sha256 of this file: da2051650ae71659c9ae11adf07bab1003c2a6cfc5ab14b69bbd8713ec45949c (two independent clones built at that path agree)
 
 stage1.elf: public release asset of paramtatv/sassembly v1.0.1 (sassembly-v1.0.1-stage1.elf), MIT.

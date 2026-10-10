@@ -4,7 +4,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { parse, write, resolveSideFiles, IsasError, SIDE_LIMIT } from '../kernel/isas.mjs';
+import { parse, write, resolveSideFiles, IsasError, SIDE_LIMIT, MAX_ISAS, MAX_SIDE } from '../kernel/isas.mjs';
 import { BAR, CELL, OUTPUT } from '../kernel/isas-names.mjs';
 import { sanitizeSvg } from '../kernel/svg.mjs';
 import { mdParse, inline, safeHref, safeRelPath } from '../kernel/md.mjs';
@@ -46,6 +46,12 @@ const C = `ISAS 1\n${BAR} ${CELL} 1 code ${BAR}\n${BAR} ${OUTPUT} ${BAR}\n`;
 refuses(C, 'IsasBadOutput', 'marker with no part');
 refuses(C + 'not json\n', 'IsasBadOutput', 'part that is not JSON');
 refuses(C + '{"status":0}\n', 'IsasBadOutput', 'part without a type');
+refuses(C + JSON.stringify({ type: 'image/png', encoding: 'base64', data: Buffer.from('not a png at all').toString('base64') }) + '\n', 'IsasBadOutput', 'an embedded png whose bytes are not a PNG');
+refuses(C + JSON.stringify({ type: 'image/jpeg', encoding: 'base64', data: Buffer.from(fx('small.png')).toString('base64') }) + '\n', 'IsasBadOutput', 'an embedded part typed jpeg that holds a PNG');
+refuses('ISAS 1\n' + 'x'.repeat(MAX_ISAS), 'IsasTooLarge', 'a file over MAX_ISAS characters');
+{ const nb = { cells: [{ kind: 'code', output: [{ type: 'image/png', src: 'a.isas.d/1.png', sha256: '0'.repeat(64) }] }] };
+  const pr = await resolveSideFiles(nb, new Map([['1.png', new Uint8Array(MAX_SIDE + 1)]]));
+  check(pr.length === 1 && pr[0].name === 'IsasTooLarge', 'a side file over MAX_SIDE octets is IsasTooLarge, not hashed'); }
 refuses(C + `{"type":"${RESULT}","status":"x","steps_compile":1,"steps_run":2,"refusal":null}\n`, 'IsasBadOutput', 'result with a text status');
 refuses(C + '{"type":"text/html","data":"<b>x</b>"}\n', 'IsasUnsupportedType', 'text/html (not in v1)');
 refuses(C + '{"type":"image/png","encoding":"base64","data":"!!!"}\n', 'IsasBadOutput', 'png with bad base64');
