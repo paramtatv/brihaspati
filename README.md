@@ -20,8 +20,8 @@ refuses an expected row that was not made by the pinned native binary.
 
 Pins (kernel/pins.json). Everything comes from the PUBLIC repository github.com/paramtatv/sassembly, tag v1.0.1
 (commit 831e4f0b5f285cefd27d09968e01c5b2fe290afa). Compiler image: that release's
-sassembly-v1.0.1-stage1.elf (kernel/fetch-stage1.sh, plain curl). vendor/yantra_wasm.wasm is
-`cargo +1.94.0 build --release --locked --target wasm32-unknown-unknown` in crates/yantra-wasm of the tag; the native runner is
+sassembly-v1.0.1-stage1.elf (kernel/fetch-stage1.sh, plain curl). vendor/yantra_wasm.wasm is v1.0.1's interpreter plus the
+in-memory file root (commit ec30af31, recipe and sha256 in vendor/NOTICE: built at the fixed path /tmp/sassembly); the native runner is
 `cargo +1.94.0 build --release --locked -p yantra --bin yantra-run`; both built with
 `RUSTFLAGS=--remap-path-prefix=<checkout>=/sassembly --remap-path-prefix=$HOME/.cargo=/cargo --remap-path-prefix=$HOME/.rustup=/rustup`
 (no local path is embedded). All three are sha256-pinned; the drivers refuse on a mismatch.
@@ -68,9 +68,10 @@ A reader refuses by name: `IsasNotAnIsasFile`, `IsasUnknownMajorVersion`, `IsasM
 `examples/*.isas` holds the 19 cells as three notebooks (native outputs saved), plus `images.isas` (a rich note and a cell with a
 png and an svg output). The output encoding is isolated in `encodeOutput` and `decodeOutput`.
 
-Image channel (stub). The worker returns `files: [{name, bytes}]` for what a program wrote; the page types them by magic bytes.
-Until yantra-wasm has an in-memory patra root, that list is a fixture (`window.__fixtureFiles`, used by the tests), so a real
-cell produces no images yet and `images.isas` shows a mismatch when run.
+Image channel. Each run gives the program an empty in-memory file root (yantra-wasm's `patra::MemFs`, the same path rules
+and refusals as `yantra-run --files`); the files it writes through the patra file window come back as `files: [{name, bytes}]`
+and the page types them by magic bytes (PNG, JPEG, sanitised SVG; anything else is ignored). The compiler run has no root.
+`test/image-cells/` holds cells that write images, made by `tools/gen-image-cells.mjs`.
 
 A refusal is named in Sanskrit, copied from the compiler's `ir.t1` into `kernel/refusals.mjs` by `tools/gen-refusals.py`
 (finisher status 853, 860, 861, 862). A driver refusal (`CellShapeRefused`, `StepLimitExceeded`, compile failure) is shown by name.

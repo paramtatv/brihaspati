@@ -1,7 +1,7 @@
 ISAS 1
 title: सारण्यः मुद्रणं च
 stage1_sha256: 71d06d6649a861c1c6205c95a59fd362f48914b377c6ace9e612bef827415480
-yantra_wasm_sha256: 56549f819b40f3d996e6960402380aac0536f40b48299411fe82c13f325f5f7e
+yantra_wasm_sha256: da2051650ae71659c9ae11adf07bab1003c2a6cfc5ab14b69bbd8713ec45949c
 created: 2026-10-09
 ॥ कोष्ठः 1 note ॥
 सारण्यः मुद्रणं च — Arrays, the heap and printing. Saved outputs were made by the native runner.

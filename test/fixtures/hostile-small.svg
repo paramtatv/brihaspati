@@ -1,0 +1,1 @@
+<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)" viewBox="0 0 10 10"><script>alert(2)</script><foreignObject><iframe src="javascript:alert(4)"/></foreignObject><a href="javascript:alert(5)"><rect width="5" height="5" onclick="alert(6)" fill="url(http://evil.example/x)"/></a><use href="http://evil.example/s.svg#a"/><circle cx="5" cy="5" r="2" fill="#112233"/></svg>

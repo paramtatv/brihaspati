@@ -2,11 +2,13 @@ yantra_wasm.wasm is licensed under the GNU Affero General Public License v3.0 on
 as declared by its source crate, crates/yantra-wasm, in https://github.com/paramtatv/sassembly.
 The full licence text is in LICENSE-AGPL-3.0 next to this file.
 
-Corresponding source: https://github.com/paramtatv/sassembly at tag v1.0.1
-(commit 831e4f0b5f285cefd27d09968e01c5b2fe290afa), crate crates/yantra-wasm.
-Build: cargo +1.94.0 build --release --locked --target wasm32-unknown-unknown, in crates/yantra-wasm of that tag, with
-RUSTFLAGS=--remap-path-prefix=<checkout>=/sassembly --remap-path-prefix=$HOME/.cargo=/cargo --remap-path-prefix=$HOME/.rustup=/rustup
-sha256 of this file: 56549f819b40f3d996e6960402380aac0536f40b48299411fe82c13f325f5f7e
+Corresponding source: Sassembly commit ec30af31c2d1956fe9b8d4a0187f2fc32809830e, crate crates/yantra-wasm (v1.0.1 plus the
+in-memory patra file root, yantra::patra::MemFs).
+Build: in a checkout of that commit placed at /tmp/sassembly (cargo hashes a path dependency's absolute path into symbol
+names, so the path is part of the recipe), in crates/yantra-wasm:
+cargo +1.94.0 build --release --locked --target wasm32-unknown-unknown, with
+RUSTFLAGS=--remap-path-prefix=/tmp/sassembly=/sassembly --remap-path-prefix=$HOME/.cargo=/cargo --remap-path-prefix=$HOME/.rustup=/rustup
+sha256 of this file: da2051650ae71659c9ae11adf07bab1003c2a6cfc5ab14b69bbd8713ec45949c (two independent clones built at that path agree)
 
 stage1.elf: public release asset of paramtatv/sassembly v1.0.1 (sassembly-v1.0.1-stage1.elf), MIT.
 

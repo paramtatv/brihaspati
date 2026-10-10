@@ -32,9 +32,7 @@ function runInWorker(src) {
     w.onmessage = (ev) => { if (live !== h) return; live = null; clearTimeout(timer); w.terminate(); ev.data.ok ? resolve(ev.data.row) : reject(new Error(ev.data.message)); };
     const died = (ev) => h.stop(named('BrihaspatiWorkerDied', 'the worker died (' + ((ev && ev.message) || 'out of memory?') + ')'));
     w.onerror = died; w.onmessageerror = died;
-    // STUB until yantra-wasm has an in-memory patra root: window.__fixtureFiles ([{name, b64}]) stands for the files a program wrote
-    const fixtureFiles = (window.__fixtureFiles || []).map((f) => ({ name: f.name, bytes: Uint8Array.from(atob(f.b64), (c) => c.charCodeAt(0)) }));
-    w.postMessage({ stage1: nb.assets.stage1, wasm: nb.assets.wasm, src, pins: nb.pins, fixtureFiles });
+    w.postMessage({ stage1: nb.assets.stage1, wasm: nb.assets.wasm, src, pins: nb.pins });
   });
 }
 async function runCell(i) {

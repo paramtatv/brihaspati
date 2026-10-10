@@ -23,18 +23,20 @@ for (const [file, [title, en, names]] of Object.entries(GROUPS)) {
   writeFileSync(join(root, 'examples', file + '.isas'), (await write({ header: [['title', title], ['stage1_sha256', pins.stage1_sha256], ['yantra_wasm_sha256', pins.yantra_wasm_sha256], ['created', '2026-10-09']], cells }, { embedAll: true, name: file })).text);
   index.push({ file: file + '.isas', title });
 }
-// images.isas: a rich note and a cell whose saved output carries an image and a sanitised SVG (a fixture: the image
-// channel waits on an in-memory patra root in yantra-wasm). Running it today returns no images, so the page shows the mismatch.
+// images.isas: a rich note and a cell that WRITES a png and an svg through the patra file window
+// (test/image-cells/png_and_svg.t1, from tools/gen-image-cells.mjs). Its saved output is that cell run here on the
+// pinned yantra-wasm with its in-memory file root (the native census in cells/expected.jsonl has no file channel).
 {
-  const fx = (f) => readFileSync(join(root, 'test/fixtures', f));
-  const { imageParts } = await import('../kernel/parts.mjs');
-  const base = outputOf(rows['print_x.t1']);
-  const imgs = imageParts([{ name: 'a.png', bytes: new Uint8Array(fx('small.png')) }, { name: 'b.svg', bytes: new Uint8Array(fx('ok.svg')) }]).parts;
-  const out = [base[0], ...imgs, base[base.length - 1]];
+  const { partsOf } = await import('../kernel/parts.mjs');
+  const { compileAndRun } = await import('../kernel/core.mjs');
+  const imgSrc = readFileSync(join(root, 'test/image-cells/png_and_svg.t1'), 'utf8').replace(/\n+$/, '');
+  const row = await compileAndRun(new Uint8Array(readFileSync(join(root, 'vendor/stage1.elf'))), new Uint8Array(readFileSync(join(root, 'vendor/yantra_wasm.wasm'))), imgSrc + '\n', pins);
+  if (row.error || row.files.length !== 2) throw new Error('png_and_svg.t1 did not write two files: ' + JSON.stringify({ ...row, elf: undefined }));
+  const out = partsOf(row, row.files);
   const note = ['# बृहस्पतिः notes', '', 'A note is **Markdown** (a subset): *emphasis*, `code`, [a link](https://github.com/paramtatv/sassembly), lists:', '', '- headings, emphasis, lists', '- code spans and blocks', '- tables, links, images by relative path', '',
     '| part | MIME type |', '|---|---|', '| text | text/plain |', '| picture | image/png, image/jpeg |', '| vector | image/svg+xml |', '', 'Raw HTML such as <b>this</b> is shown as text, never run.'].join('\n');
   writeFileSync(join(root, 'examples/images.isas'), (await write({ header: [['title', 'चित्राणि'], ['stage1_sha256', pins.stage1_sha256], ['yantra_wasm_sha256', pins.yantra_wasm_sha256], ['created', '2026-10-09']],
-    cells: [{ kind: 'note', body: note, output: null }, { kind: 'code', body: readFileSync(join(root, 'cells/print_x.t1'), 'utf8').replace(/\n+$/, ''), output: out }] }, { embedAll: true, name: 'images' })).text);
+    cells: [{ kind: 'note', body: note, output: null }, { kind: 'code', body: imgSrc, output: out }] }, { embedAll: true, name: 'images' })).text);
   index.push({ file: 'images.isas', title: 'चित्राणि' });
 }
 const all = Object.keys(rows).map((k) => k.replace('.t1', ''));

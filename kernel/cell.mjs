@@ -7,7 +7,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { compileAndRun } from './core.mjs';
+import { compileAndRun, sha256 } from './core.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pins = JSON.parse(readFileSync(join(root, 'kernel/pins.json'), 'utf8'));
@@ -22,5 +22,7 @@ if (r.error) {
   process.exit(r.error === 'PinMismatch' ? 4 : r.error === 'CellShapeRefused' ? 3 : 2);
 }
 if (elfOut) writeFileSync(elfOut, r.elf);
-const { elf, ...row } = r;
+const { elf, files, ...row } = r;
+// files the program wrote, by name, length and sha256 (absent when none, so file-free rows are unchanged)
+if (files.length) row.files = await Promise.all(files.map(async (f) => ({ name: f.name, length: f.bytes.length, sha256: await sha256(f.bytes) })));
 console.log(JSON.stringify(row));

@@ -78,7 +78,15 @@ export async function compileAndRun(stage1, wasm, src, pins, { checkPins = true,
   const elf = c.out.slice(off, c.out.length - 1);   // one marker octet each side of the ELF
   const ram = ramFor(elf);
   if (ram > 2 ** 32) return { error: 'RamTooLarge', why: `the emitted image needs ${Math.ceil(ram / 2 ** 20)} MiB of guest RAM; wasm32 holds at most 4096 MiB` };
+  // The program (never the compiler) gets an EMPTY in-memory file root (yantra::patra::MemFs; default caps 64 MiB
+  // total, 16 MiB a file); the files it wrote come back in `files`. Each compileAndRun has its own wasm instance.
+  e.yantra_memfs_enable();
   const r = run(elf, ram, runSteps, new Uint8Array(0), new Uint8Array(0));
+  const files = [];
+  for (let i = 0, n = e.yantra_memfs_count(); i < n; i++) {
+    const np = e.yantra_memfs_name(i), nl = e.yantra_memfs_name_len(i), dp = e.yantra_memfs_data(i), dl = e.yantra_memfs_data_len(i);
+    files.push({ name: dec.decode(mem().slice(np, np + nl)), bytes: mem().slice(dp, dp + dl) });
+  }
   if (typeof r.status === 'string' && r.status.startsWith('halt:')) {   // the engine stopped the run; name it
     const code = Number(r.status.slice(5));
     return code === 5
@@ -88,6 +96,6 @@ export async function compileAndRun(stage1, wasm, src, pins, { checkPins = true,
   return {
     elf, elf_sha256: await sha256(elf), status: r.status, output: dec.decode(r.out), output_hex: hex(r.out),
     steps_compile: c.steps, steps_run: r.steps, ram_run: ram, high_water_run: r.water,
-    wall_compile_s: Math.round(wall * 1000) / 1000,
+    wall_compile_s: Math.round(wall * 1000) / 1000, files,
   };
 }

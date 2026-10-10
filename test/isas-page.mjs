@@ -11,6 +11,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { parse, write, outputOf, resultOf } from '../kernel/isas.mjs';
 import { b64 } from '../kernel/parts.mjs';
+import { sanitizeSvg } from '../kernel/svg.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const out = process.argv[2] ?? '.'; mkdirSync(out, { recursive: true });
@@ -29,7 +30,6 @@ const docs = join(root, 'docs');
 for (const f of ['core.mjs', 'isas.mjs', 'isas-names.mjs', 'refusals.mjs', 'parts.mjs', 'svg.mjs', 'md.mjs']) check(sha(readFileSync(join(docs, f))) === sha(readFileSync(join(root, 'kernel', f))), `docs/${f} == kernel/${f}`);
 check(sha(readFileSync(join(docs, 'vendor/stage1.elf'))) === pins.stage1_sha256 && sha(readFileSync(join(docs, 'vendor/yantra_wasm.wasm'))) === pins.yantra_wasm_sha256, 'docs/vendor assets == pins');
 const examples = readdirSync(join(root, 'examples')).filter((f) => f.endsWith('.isas') && f !== 'images.isas').sort();
-const fixture = (f) => ({ name: f, b64: readFileSync(join(root, 'test/fixtures', f)).toString('base64') });
 for (const f of [...examples, 'images.isas']) check(sha(readFileSync(join(docs, 'examples', f))) === sha(readFileSync(join(root, 'examples', f))), `docs/examples/${f} == examples/${f}`);
 if (bad) process.exit(1);
 
@@ -68,7 +68,9 @@ try {
       check(['रिक्तखण्डपठननिषेधः', 'अतिप्रवाहनिषेधः', 'सीमातीतलेखननिषेधः', 'शून्यविभाजननिषेधः', 'CellShapeRefused'].every((w) => txt.includes(w)), 'refusals.isas: the Sanskrit refusal names and CellShapeRefused are on the page');
     }
   }
-  // ---- rich notes, images (from a FIXTURE: the worker's file channel is a stub), mismatch on a changed image ----
+  // ---- rich notes; images WRITTEN BY THE PROGRAM through the patra file window (test/image-cells/); mismatch on a changed image ----
+  const imgCell = (f) => readFileSync(join(root, 'test/image-cells', f), 'utf8').replace(/\n+$/, '');
+  const runImg = async (f) => { const n = await idle(); await page.locator('.cell--code textarea').first().fill(imgCell(f)); await page.locator('.cell--code').first().locator('button').first().click(); await page.waitForFunction((n) => (window.__idle || 0) > n, n, { timeout: 170000 }); return (await model()).find((c) => c.kind === 'code').result; };
   await page.setInputFiles('#file', join(root, 'examples/images.isas'));
   await page.waitForFunction(() => window.__nb.cells.length === 2);
   const md = page.locator('.cell--note .md').first();
@@ -78,42 +80,38 @@ try {
   await page.locator('.cell textarea').last().fill('<script>window.__pwned=1</script><img src=x onerror="window.__pwned=2"> [x](javascript:window.__pwned=3)');
   check(await page.locator('.cell--note').last().locator('script, img, a').count() === 0 && await page.evaluate(() => window.__pwned === undefined), 'note: script, img onerror and javascript: links in a note do nothing');
   check(await page.locator('.cell--code .pic').count() === 2, 'images.isas: the saved png and svg are shown as images');
-  await page.evaluate((f) => { window.__fixtureFiles = f; }, [fixture('small.png'), fixture('ok.svg')]);
-  await page.locator('.cell--code').first().locator('button').first().click();
-  await page.waitForFunction(() => window.__nb.cells[1].result);
+  let ri = await runImg('png_and_svg.t1');
+  const pngOf = (parts) => parts.find((p) => p.type === 'image/png');
+  check(pngOf(ri)?.data === b64(readFileSync(join(root, 'test/fixtures/small.png'))) && ri.some((p) => p.type === 'image/svg+xml'), 'the program wrote a png (byte-exact) and an svg; both are output parts');
   check(await page.locator('.mismatch').count() === 0 && await page.locator('.match').count() === 1, 'the rerun with the same images equals the saved output (no mismatch)');
-  await page.evaluate((f) => { window.__fixtureFiles = f; }, [fixture('other.png'), fixture('ok.svg')]);
-  await page.locator('.cell--code').first().locator('button').first().click();
-  await page.waitForFunction(() => window.__nb.cells[1].result.some((p) => p.type === 'image/png' && p.data !== window.__nb.cells[1].saved.find((q) => q.type === 'image/png').data));
-  check(await page.locator('.mismatch').count() === 1, 'a changed image shows the mismatch badge');
-  await page.evaluate((f) => { window.__fixtureFiles = f; }, [fixture('hostile.svg')]);
-  await page.locator('.cell--code').first().locator('button').first().click();
-  await page.waitForFunction(() => window.__nb.cells[1].result.some((p) => p.type === 'image/svg+xml' && !window.__nb.cells[1].result.some((q) => q.type === 'image/png')));
-  const svgPart = (await model())[1].result.find((p) => p.type === 'image/svg+xml');
-  check(!/script|foreignObject|onload|javascript|iframe|evil\.example/i.test(svgPart.data) && await page.evaluate(() => window.__pwned === undefined), 'a hostile SVG from the program is sanitised and does nothing');
+  ri = await runImg('other_png_and_svg.t1');
+  check(pngOf(ri)?.data === b64(readFileSync(join(root, 'test/fixtures/other.png'))) && await page.locator('.mismatch').count() === 1, 'a program that writes a different image shows the mismatch badge');
+  ri = await runImg('jpeg_and_hostile_svg.t1');
+  const svgPart = ri.find((p) => p.type === 'image/svg+xml');
+  check(ri.find((p) => p.type === 'image/jpeg')?.data === b64(readFileSync(join(root, 'test/fixtures/tiny.jpg'))), 'the program wrote a jpeg; it is an image/jpeg part, byte-exact');
+  check(svgPart && !/script|foreignObject|onload|onclick|javascript|iframe|evil\.example/i.test(svgPart.data) && await page.evaluate(() => window.__pwned === undefined), 'a hostile SVG written by the program is sanitised and does nothing');
   // a large image goes to a side file; embed-everything embeds it; reopen with and without the side file
-  await page.evaluate((f) => { window.__fixtureFiles = f; }, [fixture('big.png')]);
-  await page.locator('.cell--code').first().locator('button').first().click();
-  await page.waitForFunction(() => window.__nb.cells[1].result.some((p) => p.type === 'image/png' && p.data.length > 80000));
+  ri = await runImg('big_svg.t1');
+  const big = ri.find((p) => p.type === 'image/svg+xml');
+  check(big && big.data === sanitizeSvg(readFileSync(join(root, 'test/image-cells/big_svg.expected'), 'utf8')) && big.data.length > 65536, `the program built a ${big?.data.length}-octet svg in a loop; it is the expected document`);
   await page.fill('#title', 'big-test');
   const dls = []; page.on('download', (d) => dls.push(d));
   await page.click('#savenb'); await page.waitForFunction(() => document.getElementById('notice').textContent.includes('big-test.isas.d'), null, { timeout: 20000 });
   await page.waitForTimeout(500);
   const names = dls.map((d) => d.suggestedFilename()).sort();
-  check(names.join() === '1.png,big-test.isas', `save without embed-everything: the notebook and one side file (${names.join()})`);
-  const nbPath = join(out, 'big-test.isas'), sidePath = join(out, '1.png');
+  check(names.join() === '1.svg,big-test.isas', `save without embed-everything: the notebook and one side file (${names.join()})`);
+  const nbPath = join(out, 'big-test.isas'), sidePath = join(out, '1.svg');
   for (const d of dls) await d.saveAs(d.suggestedFilename().endsWith('.isas') ? nbPath : sidePath);
   const bigText = readFileSync(nbPath, 'utf8');
-  check(bigText.includes('"src":"big-test.isas.d/1.png"') && !bigText.includes('"encoding":"base64"' + ',"data":"iVBOR') && sha(readFileSync(sidePath)) === sha(readFileSync(join(root, 'test/fixtures/big.png'))), 'the .isas references big-test.isas.d/1.png by src and sha256, and the side file is the image');
+  check(bigText.includes('"src":"big-test.isas.d/1.svg"') && !bigText.includes('<rect width=\\"1\\"') && readFileSync(sidePath, 'utf8') === big.data, 'the .isas references big-test.isas.d/1.svg by src and sha256, and the side file is the image');
   await page.setInputFiles('#file', [nbPath, sidePath]);
   await page.waitForFunction(() => window.__nb.cells.length === 3);
   check(await page.locator('.cell--code .pic').count() === 1 && await page.evaluate(() => document.getElementById('notice').textContent === ''), 'open with the side file: the image shows and nothing is reported');
   await page.setInputFiles('#file', nbPath);
   await page.waitForFunction(() => document.getElementById('notice').textContent.includes('IsasMissingSideFile'));
   check(true, 'open without the side file: IsasMissingSideFile is reported');
-  writeFileSync(join(out, '1-bad.png'), Buffer.concat([readFileSync(sidePath).subarray(0, 100), Buffer.from([1]), readFileSync(sidePath).subarray(101)]));
-  mkdirSync(join(out, 'bad'), { recursive: true }); writeFileSync(join(out, 'bad/1.png'), readFileSync(join(out, '1-bad.png')));
-  await page.setInputFiles('#file', [nbPath, join(out, 'bad/1.png')]);
+  mkdirSync(join(out, 'bad'), { recursive: true }); writeFileSync(join(out, 'bad/1.svg'), readFileSync(sidePath, 'utf8').replace('<rect width="1"', '<rect width="2"'));
+  await page.setInputFiles('#file', [nbPath, join(out, 'bad/1.svg')]);
   await page.waitForFunction(() => document.getElementById('notice').textContent.includes('IsasSideFileHashMismatch'));
   check(true, 'open with a changed side file: IsasSideFileHashMismatch is reported');
   await page.setInputFiles('#file', [nbPath, sidePath]);
@@ -122,8 +120,8 @@ try {
   await page.click('#savenb'); await page.waitForTimeout(1500);
   check(dls.length === 1 && dls[0].suggestedFilename() === 'big-test.isas', 'embed everything: one file, no side file');
   await dls[0].saveAs(join(out, 'embedded.isas'));
-  check(readFileSync(join(out, 'embedded.isas'), 'utf8').includes('"encoding":"base64"'), 'embed everything: the large image is inside the notebook');
-  await page.uncheck('#embedall'); await page.evaluate(() => { window.__fixtureFiles = []; });
+  check(readFileSync(join(out, 'embedded.isas'), 'utf8').length > 65536 && !readFileSync(join(out, 'embedded.isas'), 'utf8').includes('"src":'), 'embed everything: the large image is inside the notebook');
+  await page.uncheck('#embedall');
   await page.setInputFiles('#file', join(root, 'examples/arrays-and-output.isas')); await page.waitForFunction(() => window.__nb.cells.length === 6); await runAll();
   // edit + structure: add a note, move it up, delete the first cell; then SAVE and compare with the model
   await page.click('#addnote');
