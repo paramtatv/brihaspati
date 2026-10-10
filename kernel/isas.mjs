@@ -13,7 +13,7 @@ const CELL_RE = new RegExp(`^${BAR} ${CELL} (\\d+) (code|note) ${BAR}$`);
 const OUT_LINE = `${BAR} ${OUTPUT} ${BAR}`;
 const isMarkerish = (l) => l.startsWith(`${BAR} ${CELL} `) || l.startsWith(`${BAR} ${OUTPUT} `) || l === OUT_LINE;
 
-// ---- the output encoding lives in encodeOutput / decodeOutput only ----------------------------------------------------
+// ---- the output encoding lives in encodeOutput / decodeOutput only ----
 // An output is an array of parts (kernel/parts.mjs). After the OUTPUT marker: ONE JSON line per part, each with a MIME `type`.
 export const MAX_ISAS = 32 << 20, MAX_SIDE = 16 << 20;  // a larger .isas (characters) or side file (octets) is IsasTooLarge, not read
 export const SIDE_LIMIT = 64 * 1024;            // parts under 64 KB are embedded; larger images go to <name>.isas.d/
@@ -66,7 +66,7 @@ export function decodeOutput(lines, at) {
   });
 }
 export { partsOf as outputOf, textOf, resultOf, sameParts as sameOutput } from './parts.mjs';
-// -------------------------------------------------------------------------------------------------------------------
+// ----
 
 // text -> { version, header: [[key, value], ...] (unknown keys kept, in order), cells: [{ kind, body, output|null }] }
 export function parse(text) {

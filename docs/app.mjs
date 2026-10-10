@@ -19,7 +19,7 @@ async function loadAssets() {
   nb.pins = pins; nb.assets = { stage1: await bytes('vendor/stage1.elf'), wasm: await bytes('vendor/yantra_wasm.wasm') };
 }
 
-// ---- one worker at a time; a dead or silent worker ends the cell with a named error -------------------------------
+// ---- one worker at a time; a dead or silent worker ends the cell with a named error ----
 function runInWorker(src) {
   if (live) live.stop(new Error('stopped'));
   const w = new Worker('worker.mjs', { type: 'module' });
@@ -48,7 +48,7 @@ async function runCell(i) {
 }
 async function guard(fn) { if (busy) return; busy = true; render(); try { await fn(); } finally { busy = false; render(); window.__idle = (window.__idle || 0) + 1; } }
 
-// ---- notebook <-> file ----------------------------------------------------------------------------------------------
+// ---- notebook <-> file ----
 async function load(text, side = new Map()) {
   const p = parse(text);
   const problems = await resolveSideFiles(p, side);
@@ -67,7 +67,7 @@ async function save(embedAll) {
 }
 const fail = (e) => { notice = e instanceof IsasError ? `${e.name}: ${e.why}${e.line ? ' (' + e.line + ')' : ''}` : String(e.message || e); render(); };
 
-// ---- view -----------------------------------------------------------------------------------------------------------
+// ---- view ----
 const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) k.startsWith('on') ? e.addEventListener(k.slice(2), v) : k === 'class' ? (e.className = v) : e.setAttribute(k, v); for (const k of kids) e.append(k); return e; };
 const showParts = (parts, label) => {
   const d = el('div', { class: 'part' }); if (label) d.append(el('div', { class: 'lab' }, label));
@@ -143,7 +143,7 @@ function render() {
   window.__nb = nb;
 }
 
-// ---- wiring ---------------------------------------------------------------------------------------------------------
+// ---- wiring ----
 $('title').addEventListener('input', () => { nb.title = $('title').value; });
 $('addcode').onclick = () => { nb.cells.push(blank('code')); render(); };
 $('addnote').onclick = () => { nb.cells.push(blank('note')); render(); };

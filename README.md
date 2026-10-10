@@ -47,7 +47,7 @@ The notebook page. `docs/` is the notebook, served at https://paramtatv.github.i
 `sh tools/build-docs.sh`: cells of two kinds (code and note), edit, run a cell, run all, add, delete and move cells,
 open and save `.isas` files (File API), and a saved-vs-rerun mismatch badge on every code cell. The UI is Sanskrit
 first with an en/hi toggle. One worker at a time runs `kernel/core.mjs` (the same file `kernel/cell.mjs` uses). The page
-JavaScript is about 47 KB, without the wasm and the compiler image.
+JavaScript is about 48 KB (the .mjs modules; the theme script adds 2.3 KB), without the wasm and the compiler image.
 
 The `.isas` format, version 1 with the amendment (reference parser and writer: `kernel/isas.mjs`; the marker words `कोष्ठः`,
 `प्रकारः`, `फलम्` are copied from the format spec into `kernel/isas-names.mjs` by `tools/gen-isas-names.py`). Line 1 is
