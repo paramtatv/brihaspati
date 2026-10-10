@@ -32,7 +32,7 @@ export async function sha256(bytes) {
 const indexOfSeq = (a, seq) => { outer: for (let i = 0; i + seq.length <= a.length; i++) { for (let j = 0; j < seq.length; j++) if (a[i + j] !== seq[j]) continue outer; return i; } return -1; };
 
 // stage1, wasm: Uint8Array. src: string. pins: kernel/pins.json. Returns the same row cell.mjs prints.
-export async function compileAndRun(stage1, wasm, src, pins, { checkPins = true, runSteps = RUN_STEPS } = {}) {
+export async function compileAndRun(stage1, wasm, src, pins, { checkPins = true, runSteps = RUN_STEPS, fileCaps = { total: FILES_TOTAL, file: FILE_MAX } } = {}) {
   if (checkPins) for (const [b, k] of [[stage1, 'stage1_sha256'], [wasm, 'yantra_wasm_sha256']]) {
     const got = await sha256(b);
     if (got !== pins[k]) return { error: 'PinMismatch', what: k, got };
@@ -83,7 +83,7 @@ export async function compileAndRun(stage1, wasm, src, pins, { checkPins = true,
   // The program (never the compiler) gets an EMPTY in-memory file root (yantra::patra::MemFs); the files it wrote come
   // back in `files`. Each compileAndRun has its own wasm instance. Caps: FILES_TOTAL octets in all, FILE_MAX a file
   // (both enforced by the engine, which also allows at most 4096 files), so `files` is bounded.
-  if (e.yantra_memfs_enable_caps(FILES_TOTAL, FILE_MAX) !== 0) throw new Error('memfs caps refused');
+  if (e.yantra_memfs_enable_caps(fileCaps.total, fileCaps.file) !== 0) throw new Error('memfs caps refused');
   const r = run(elf, ram, runSteps, new Uint8Array(0), new Uint8Array(0));
   const files = [];
   for (let i = 0, n = e.yantra_memfs_count(); i < n; i++) {

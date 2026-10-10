@@ -4,15 +4,19 @@
 // image, a, iframe, object, embed, and any unknown element. Dropped outright: comments, CDATA, DOCTYPE/ENTITY, processing
 // instructions. Attributes: allowlist only; no on*; href only to a #fragment; no url() except to a #fragment; no javascript:.
 const ELEMENTS = new Set('svg g defs path rect circle ellipse line polyline polygon text tspan title desc lineargradient radialgradient stop clippath mask use symbol pattern marker'.split(' '));
-const ATTRS = new Set(`id class x y x1 y1 x2 y2 cx cy r rx ry width height viewbox preserveaspectratio d points transform fill fill-opacity fill-rule stroke stroke-width stroke-opacity stroke-linecap stroke-linejoin stroke-dasharray stroke-dashoffset stroke-miterlimit opacity offset stop-color stop-opacity gradientunits gradienttransform fx fy clip-path clip-rule mask maskunits maskcontentunits patternunits patterntransform markerwidth markerheight refx refy orient markerunits font-family font-size font-weight font-style text-anchor dominant-baseline dx dy rotate textlength lengthadjust letter-spacing xmlns xmlns:xlink version style href xlink:href`.split(/\s+/));
+const ATTRS = new Set(`id class x y x1 y1 x2 y2 cx cy r rx ry width height viewbox preserveaspectratio d points transform fill fill-opacity fill-rule stroke stroke-width stroke-opacity stroke-linecap stroke-linejoin stroke-dasharray stroke-dashoffset stroke-miterlimit opacity offset stop-color stop-opacity gradientunits gradienttransform fx fy clip-path clip-rule mask maskunits maskcontentunits patternunits patterntransform markerwidth markerheight refx refy orient markerunits font-family font-size font-weight font-style text-anchor dominant-baseline dx dy rotate textlength lengthadjust letter-spacing xmlns xmlns:xlink version href xlink:href`.split(/\s+/));
 const esc = (s) => s.replace(/&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[0-9a-f]+);)/gi, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const cleanVal = (name, v) => {
   const flat = v.replace(/&#x?[0-9a-f]+;?/gi, (m) => m).replace(/[\s\u0000-\u001f]+/g, '').toLowerCase();
-  if (/javascript:|vbscript:|data:|expression\(|@import|<|&#/.test(flat)) return null;
+  if (/javascript:|vbscript:|data:|expression\(|@import|<|&#|\\/.test(flat)) return null;   // \ : no CSS escapes (u\72l()
   if (name === 'href' || name === 'xlink:href') return /^#[\w.:-]+$/.test(v.trim()) ? v.trim() : null;
   if (name === 'xmlns') return v === 'http://www.w3.org/2000/svg' ? v : null;
   if (name === 'xmlns:xlink') return v === 'http://www.w3.org/1999/xlink' ? v : null;
-  for (const m of flat.matchAll(/url\(([^)]*)\)/g)) if (!/^['"]?#[\w.:-]+['"]?$/.test(m[1])) return null;
+  // linear: each url( is matched to the next ) once; a url( with no ) refuses the value (a regex here was quadratic)
+  for (let k = flat.indexOf('url('); k >= 0; k = flat.indexOf('url(', k + 4)) {
+    const e = flat.indexOf(')', k + 4);
+    if (e < 0 || !/^['"]?#[\w.:-]+['"]?$/.test(flat.slice(k + 4, e))) return null;
+  }
   return v;
 };
 export function sanitizeSvg(text) {

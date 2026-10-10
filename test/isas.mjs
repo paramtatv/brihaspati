@@ -67,6 +67,10 @@ const clean = sanitizeSvg(hostile);
 check(clean !== null && !/script|foreignObject|onload|onclick|onmouseover|javascript|iframe|evil\.example|ENTITY|DOCTYPE|alert|<style|<image|<set|<animate|CDATA|@import/i.test(clean), `hostile SVG comes out clean: ${clean}`);
 check(/<circle cx="5"/.test(clean) && /<rect width="3"/.test(clean), 'the harmless shapes of the hostile SVG survive');
 check(sanitizeSvg(clean) === clean, 'sanitising is idempotent');
+{ const t0 = performance.now(); const s = sanitizeSvg(`<svg xmlns="http://www.w3.org/2000/svg"><rect fill="${'url('.repeat(60000)}"/></svg>`); const ms = performance.now() - t0;
+  check(ms < 500 && s !== null && !/url\(/.test(s), `240 KB of url( with no ) is refused in ${Math.round(ms)} ms (linear; it was quadratic, about 18 s)`); }
+{ const s = sanitizeSvg('<svg xmlns="http://www.w3.org/2000/svg"><rect width="1" fill="u\\72l(http://evil.example/x)" style="fill:red"/></svg>');
+  check(s !== null && !/evil|\\|style/.test(s) && /<rect width="1"/.test(s), `a CSS escape in a value (u\\72l) and a style attribute are dropped: ${s}`); }
 check(sanitizeSvg('<html><body>x</body></html>') === null && sanitizeSvg('') === null, 'a non-SVG document is refused (null)');
 check(sanitizeSvg(new TextDecoder().decode(fx('ok.svg'))).includes('<circle'), 'a plain SVG keeps its shapes and text');
 // the same hostile SVG inside a file: sanitised on read, so the page never sees it

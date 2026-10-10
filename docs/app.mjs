@@ -2,6 +2,7 @@
 // बृहस्पति notebook page: cells, run (one worker at a time), open/save .isas. State is plain data; render() redraws.
 import { parse, write, resolveSideFiles, MAX_ISAS, MAX_SIDE, outputOf, textOf, resultOf, sameOutput, IsasError } from './isas.mjs';
 import { partBytes, imageParts } from './parts.mjs';
+import { sanitizeSvg } from './svg.mjs';
 import { mdParse, safeHref, safeRelPath } from './md.mjs';
 import { LANG, setLang, t } from './i18n.mjs';
 
@@ -105,7 +106,8 @@ const inl = (nodes) => nodes.map((n) => {
     case 'a': return safeHref(n.href) ? el('a', { href: n.href, rel: 'noopener noreferrer', target: '_blank' }, ...inl(n.c)) : document.createTextNode(n.href);
     case 'img': {
       const f = safeRelPath(n.src) ? (nb.side.get(n.src) || nb.side.get(n.src.split('/').pop())) : null;
-      return f ? el('img', { class: 'pic', alt: n.alt, src: blobUrl(f, 'image/' + (/\.svg$/i.test(n.src) ? 'svg+xml' : /\.jpe?g$/i.test(n.src) ? 'jpeg' : 'png')) }) : el('span', { class: 'detail' }, `[${n.alt || n.src}]`);
+      const svg = f && /\.svg$/i.test(n.src) ? sanitizeSvg(new TextDecoder().decode(f)) : null;   // a note's svg is sanitised like an output's
+      return f && (svg !== null || !/\.svg$/i.test(n.src)) ? el('img', { class: 'pic', alt: n.alt, src: blobUrl(svg ?? f, 'image/' + (svg !== null ? 'svg+xml' : /\.jpe?g$/i.test(n.src) ? 'jpeg' : 'png')) }) : el('span', { class: 'detail' }, `[${n.alt || n.src}]`);
     }
   }
 });
