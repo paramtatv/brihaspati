@@ -1,129 +1,89 @@
-# बृहस्पति (Brihaspati)
+# बृहस्पति · Brihaspati
 
-*A notebook for Sassembly: write a cell, run it on an RV64 interpreter in your browser, and get the same bytes as the native run.*
+**A notebook for Sassembly that compiles and runs every cell inside your browser.**
 
-[![बृहस्पति: the .isas notebook page running a print, a compute cell and a refusal, then a notebook with images](docs/media/brihaspati-demo.gif)](docs/media/brihaspati-demo.mp4)
+[![Licence: AGPL-3.0-only](https://img.shields.io/badge/licence-AGPL--3.0--only-blue.svg)](LICENSE)
 
-*A 70-second screen recording of the notebook page opening `.isas` notebooks: a print, a compute cell showing status and steps, a refusal named in Sanskrit, then `images.isas` with a Markdown note and the PNG and SVG its cell wrote. Click for the mp4.*
+### ▶ [Try it in your browser](https://paramtatv.github.io/brihaspati)
 
+[![Brihaspati notebook page: a print cell, a compute cell, a refusal, and a notebook with images](docs/media/brihaspati-demo.gif)](docs/media/brihaspati-demo.mp4)
+
+*Screen recording of the notebook page. Click it for the mp4.*
 
 ## What it is
 
-Brihaspati is a notebook and cell kernel for Sassembly, the Sanskrit-native RISC-V assembly language of the
-Paramtatva project (public product repository: github.com/paramtatv/sassembly). A cell is compiled by the
-self-hosted Sassembly compiler image, and the emitted program runs on `yantra`, the RV64 interpreter, either
-in the browser (yantra-wasm, no imports) or natively (`yantra-run`). The two runs are compared field by field.
-The notebook page is live at https://paramtatv.github.io/brihaspati.
+Brihaspati is a notebook for [Sassembly](https://github.com/paramtatv/sassembly), the Sanskrit-native
+RISC-V assembly language. You write a cell and press Run. The cell is compiled by the self-hosted
+Sassembly compiler (Sassembly compiling Sassembly), and the program it emits runs on an RV64 interpreter
+compiled to WebAssembly. All of it happens in the browser tab: there is no server. The results are checked
+to be byte-identical to the same cell run natively.
 
-## Quickstart
+## A cell looks like this
 
-Needs `node`, `curl` and `sh`; `python3` for the native run. Run from the repository root.
+This is [`cells/print_x.t1`](cells/print_x.t1). It prints the byte 88 (`X`) and returns 7.
 
-    sh kernel/fetch-stage1.sh                 # fetch the compiler image (sha256-pinned release asset)
-    node kernel/cell.mjs cells/print_x.t1     # run one cell on yantra-wasm; prints a JSON row
-    sh kernel/native.sh cells/print_x.t1      # same row from the native yantra-run (needs vendor/yantra-run)
-    node test/agree.mjs                       # native == expected == wasm for every cell
-    sh tools/build-docs.sh                    # build the notebook page into docs/
+```
+मण्डलम् शृङ्खला ॥
+आयातः अष्टक ।
 
-Open `docs/index.html` through a local web server, or use the hosted page above.
+सार्वजनिक वृत्तिः स्वपरीक्षास्वप्रतिबिम्बम् ददाति न६४ आदि
+    चरः क ॱॱ अङ्कः अन्तः न६४ भवति ० ।
+    चरः अवगणना ॱॱ न६४ भवति अष्टकॱमुद्रणम् ८८ ।
+    प्रत्यागमनम् ७ ।
+इति
+```
 
-## Status
+Its result, from [`cells/expected.jsonl`](cells/expected.jsonl):
 
-Works today (Phase 1a, and the notebook page):
-- A T1 cell compiles and runs on yantra-wasm with a result equal to the native run (emitted ELF, output, finisher status, instruction count, guest RAM size, heap high water). `test/agree.mjs` checks this for the 19 cells.
-- The notebook page: code and note cells, edit, run, run all, add, delete, move, open and save `.isas` files, a saved-vs-rerun mismatch badge, Sanskrit-first UI with en/hi toggle.
-- Cells that write PNG, JPEG or SVG files show them as image outputs (SVG sanitised).
-- Refusals are named in Sanskrit (finisher statuses 853, 860, 861, 862).
+| field | value |
+|---|---|
+| output | `X` |
+| status | `7` |
+| instructions to compile | 73,268,811 |
+| instructions to run | 44 |
 
-Pending or limited (stated as in the code, not as plans):
-- One fixed entry per cell, no state or import between cells; every cell starts a fresh engine.
-- The persistent-machine interface (`kernel/machine.mjs`, `kernel/session.mjs`: cells linked into a live image, interrupt and resume) is the L28 work. Its yantra-wasm adapter refuses run-after-run and snapshot/restore (`Unsupported`), and the fragment compiler is not built (`FragmentCompilerUnavailable`); no cell runs in a live session yet.
-- No compile error carries a source position. A phone browser is untested.
+The browser run gives the same emitted program (same sha256), the same output, status and instruction counts.
 
-## Details
+## Features
 
-Phase 1a: a T1 cell is compiled by the self-hosted Sassembly v1.0.2 compiler image running on
-yantra-wasm (node), and the emitted program runs on yantra-wasm. The result equals the native run
-byte for byte: emitted ELF, output, finisher status, instruction count, guest RAM size and heap high water.
+- Code cells and Markdown note cells: edit, run one, run all, add, delete, move.
+- Notebooks open and save as `.isas` files; a badge flags a saved output that a re-run does not reproduce.
+- Every cell's browser result equals the native run (emitted ELF, output, status, instruction count, guest RAM,
+  heap high water); `test/agree.mjs` checks this for all 19 sample cells.
+- Cells that write PNG, JPEG or SVG files show them as images (SVG is sanitised).
+- Errors such as overflow, division by zero and out-of-bounds access are named in Sanskrit.
+- The interface is Sanskrit first, with an English and Hindi toggle.
 
-    sh kernel/fetch-stage1.sh                 # compiler image, sha256-pinned (release asset)
-    node kernel/cell.mjs cells/print_x.t1     # JSON: elf_sha256, status, output, steps_compile, steps_run, ...
-    sh kernel/native.sh cells/print_x.t1      # same JSON, native yantra-run (needs vendor/yantra-run)
-    sh test/expect.sh                         # regenerate cells/expected.jsonl, from native ONLY
-    node test/agree.mjs                       # per cell: native == expected == wasm; non-zero on any disagreement
+## Run it locally
 
-`agree.mjs` first runs a negative control (a flipped field must be reported as a difference), and
-refuses an expected row that was not made by the pinned native binary.
+Needs `node`, `curl` and `sh`. Run from the repository root.
 
-Pins (kernel/pins.json). Everything comes from the PUBLIC repository github.com/paramtatv/sassembly, tag v1.0.2
-(commit b86a24ee576f2bd3a0b4e207bb6d724724f132b3). Compiler image: that release's sassembly-v1.0.2-stage1.elf
-(kernel/fetch-stage1.sh, plain curl; checked against the release's SHA256SUMS-v1.0.2). vendor/yantra_wasm.wasm is the tag's
-crates/yantra-wasm (with the in-memory file root), built at the fixed path /tmp/sassembly (recipe and sha256 in
-vendor/NOTICE; two independent clones reproduce it). The native runner is the release's yantra-run (the
-sassembly-v1.0.2-linux-x86_64 tarball). All three are sha256-pinned; the drivers refuse on a mismatch.
+```sh
+sh kernel/fetch-stage1.sh                 # download the pinned compiler image (sha256-checked)
+node kernel/cell.mjs cells/print_x.t1     # compile and run one cell on the wasm interpreter; prints a JSON row
+node test/agree.mjs                       # check native == expected == wasm for every cell
+sh tools/build-docs.sh                    # build the notebook page into docs/
+```
 
-Cell convention. The v1.0.2 image keeps its default entry unless the input names one (v1.0.2's entry from the input,
-not used here yet): it links the corpus into an image whose entry
-is one named routine of one named module (both in kernel/pins.json, copied from the compiler source
-by script). A cell must use that module and entry; both drivers refuse any other with
-`CellShapeRefused` (see cells/entry_not_fixed_refused.t1). The cells are existing integer-semantics,
-refusal and array programs from Sassembly tests, module and entry renamed by script, plus derived cells
-(print, checked add, a heap over 64 MiB). Refusals are finisher statuses 853 (read past length),
-860 (checked overflow), 861 (write at -1), 862 (division by zero).
+Then serve `docs/` with any local web server and open `index.html`. The native comparison run
+(`sh kernel/native.sh`) also needs `python3` and the Linux `yantra-run` binary; see [docs/KERNEL.md](docs/KERNEL.md).
 
-Memory. The compiler needs about 640 MiB of guest RAM (512 MiB .bss heap, stack above it); node
-holds about 1.4 GB per compile. The wasm run RAM is sized from the emitted ELF by the native rule
-(the larger of 20 MiB and the declared extent plus 16 MiB; crates/yantra/src/lib.rs:241,
-:245, :318-338), so both engines get the same RAM (`ram_run` is compared). A program that declares
-a 512 MiB heap runs in 553,721,872 octets on both; cells/heap_over_64mib.t1 writes 70 MB of it.
-wasm32 would refuse a guest RAM above 4 GiB; nothing here is near it.
+## Limits
 
-Licence. This repository is AGPL-3.0-only (LICENSE), with a commercial licence available from the copyright holder (COMMERCIAL-LICENSE.md). Commits up to and including e1d80ab were published under MIT and stay MIT as published. Files under their own licences are listed in NOTICE: the vendored `yantra_wasm.wasm` (AGPL-3.0-only, from the crate `crates/yantra-wasm` of Sassembly; corresponding source and build command in `vendor/NOTICE`), the compiler image `stage1.elf` and the site stylesheet and theme script (MIT, from paramtatv/sassembly). The native `yantra-run` is built from public Sassembly and is not committed here.
+- **No state between cells yet.** Every cell starts a fresh machine and must use one fixed module and entry
+  routine. A live session, where cells share one running image, is in progress.
+- **Compile errors carry no source position.**
+- **Phone browsers are untested.**
+- **Each compile is heavy:** about 640 MiB of guest memory, about 9 s per cell on desktop Chromium.
 
-The notebook page. `docs/` is the notebook, served at https://paramtatv.github.io/brihaspati and built by
-`sh tools/build-docs.sh`: cells of two kinds (code and note), edit, run a cell, run all, add, delete and move cells,
-open and save `.isas` files (File API), and a saved-vs-rerun mismatch badge on every code cell. The UI is Sanskrit
-first with an en/hi toggle. One worker at a time runs `kernel/core.mjs` (the same file `kernel/cell.mjs` uses). The page
-JavaScript is about 48 KB (the .mjs modules; the theme script adds 2.3 KB), without the wasm and the compiler image.
+## How it works
 
-The `.isas` format, version 1 with the amendment (reference parser and writer: `kernel/isas.mjs`; the marker words `कोष्ठः`,
-`प्रकारः`, `फलम्` are copied from the format spec into `kernel/isas-names.mjs` by `tools/gen-isas-names.py`). Line 1 is
-`ISAS 1`; header lines `key: value` (`title`, `stage1_sha256`, `yantra_wasm_sha256`, `created`; unknown keys are kept); a cell is
-a marker line `॥ कोष्ठः N code|note ॥` and its body. A note is a Markdown subset (headings, emphasis, lists, code spans and
-blocks, links, tables, images by relative path, quotes, rules) drawn by our own renderer (`kernel/md.mjs`): raw HTML is text,
-`javascript:` links are not links, image paths must be relative with no `..`. A code cell may be followed by `॥ फलम् ॥` and
-ONE JSON line per output part, each with a MIME `type`: `text/plain {data}`; `image/png` or `image/jpeg`
-`{encoding:"base64", data}` or `{src:"<name>.isas.d/<n>.<ext>", sha256}`; `image/svg+xml {data}` (sanitised by `kernel/svg.mjs`: an
-allowlist re-serialiser that drops script, foreignObject, style, animation, external references, event attributes, DOCTYPE
-and CDATA; applied when a file is read and when an image arrives); and `application/x-sassembly-result {status, steps_compile,
-steps_run, refusal}`. There is no `text/html`. Images under 64 KB are embedded; larger ones are written as side files in
-`<name>.isas.d/` and referenced by sha256, unless "embed everything" is chosen (the checkbox on the page; without it the browser
-downloads the notebook and the side files, which go in a folder `<name>.isas.d/`; open the notebook and its side files together).
-A reader refuses by name: `IsasNotAnIsasFile`, `IsasUnknownMajorVersion`, `IsasMalformedHeader`, `IsasBadCellMarker`,
-`IsasCellNumberOutOfOrder`, `IsasOutputOnNote`, `IsasBadOutput`, `IsasUnsupportedType`; a missing or changed side file is
-`IsasMissingSideFile` or `IsasSideFileHashMismatch`; a .isas over 32 Mi characters or a side file over 16 MiB is `IsasTooLarge`, refused before it is read; the writer refuses `IsasUnwritableBody`, `IsasUnknownCellKind`.
-`examples/*.isas` holds the 19 cells as three notebooks (native outputs saved), plus `images.isas` (a rich note and a cell with a
-png and an svg output). The output encoding is isolated in `encodeOutput` and `decodeOutput`.
+- [docs/KERNEL.md](docs/KERNEL.md): pinned versions, the cell convention, memory sizing, the notebook page,
+  error names, worker failures, the live-session work in progress, and the tests.
+- [docs/ISAS-FORMAT.md](docs/ISAS-FORMAT.md): the `.isas` notebook file format, its refusals, and how cells
+  return images.
 
-Image channel. Each run gives the program an empty in-memory file root (yantra-wasm's `patra::MemFs`, the same path rules
-and refusals as `yantra-run --files`); the files it writes through the patra file window come back as `files: [{name, bytes}]`
-and the page types them by magic bytes (PNG, JPEG, sanitised SVG; anything else is ignored). The compiler run has no root.
-`test/image-cells/` holds cells that write images, made by `tools/gen-image-cells.mjs`.
+## Licence
 
-A refusal is named in Sanskrit, copied from the compiler's `ir.t1` into `kernel/refusals.mjs` by `tools/gen-refusals.py`
-(finisher status 853, 860, 861, 862). A driver refusal (`CellShapeRefused`, `StepLimitExceeded`, compile failure) is shown by name.
-
-Worker failures. A cell runs in one worker at a time; a new run first terminates a live one, so two 640 MiB workers never
-stack. A worker that dies is `BrihaspatiWorkerDied`, one that does not answer within 180 s is `BrihaspatiTimeout`
-("slow device?"); a run that reaches its 4,000,000,000-step budget is `StepLimitExceeded`; a failed guest-RAM allocation says
-how many MiB it wanted. The wasm is AGPL-3.0-only: the page footer links its source (sassembly v1.0.2) and `NOTICE`.
-Chromium on a desktop grants the 640 MiB compile memory (about 9 s a cell); a phone browser is untested.
-
-Known limits. Fixed entry: a cell must be module शृङ्खला with the entry routine named in `kernel/pins.json`
-(anything else is `CellShapeRefused`); no state or import between cells. Compile errors carry no source position. Every cell
-starts a fresh engine and compiles from scratch, about 70 to 720 million guest steps.
-
-Tests. `node test/agree.mjs` (native == expected == wasm, 19 cells), `node test/isas.mjs` (round trips incl. an embedded and a side-file image, every refusal, a hostile SVG, the Markdown subset),
-`node test/steplimit.mjs`, `PLAYWRIGHT=<playwright-core dir> node test/isas-page.mjs` (headless Chromium: each example opened,
-Run all, every result equal to native; save, reopen, a doctored saved output flagged, notes and images from a fixture, a changed image flagged, side-file save and open, worker failures, a live native cell,
-page errors fail).
+AGPL-3.0-only ([LICENSE](LICENSE)); a commercial licence is also available ([COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md)).
+Vendored files keep their own licences, and commits up to e1d80ab were published under MIT: see [NOTICE](NOTICE).
