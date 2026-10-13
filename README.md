@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/brand/logo.svg" alt="Brihaspati logo" width="96"></p>
+
 # बृहस्पति · Brihaspati
 
 **A notebook for Sassembly that compiles and runs every cell inside your browser.**
