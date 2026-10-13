@@ -89,6 +89,19 @@ The persistent-machine interface (`kernel/machine.mjs`, `kernel/session.mjs`: ce
 Run all, every result equal to native; save, reopen, a doctored saved output flagged, notes and images from a fixture, a changed image flagged, side-file save and open, worker failures, a live native cell,
 page errors fail).
 
+## Plugin resolver (`kernel/isas-pkg.py`)
+
+Native Python CLI (stdlib only) beside `native.py`; the only code that fetches. The page and cell runs never do. Design: `agent-handovers/ISAS-SAS-PLUGIN-DESIGN.md` section 2b.
+
+`isas-pkg.py [-d <name>.isas.d] [--proxy LIST] add <path>[@vX.Y.Z] | update [<path>] | vendor | verify | tidy | mirror <dir>`
+
+- Files in the side folder: `plugins.req` (`require <path> <vX.Y.Z>`, the notebook's direct requirements), `plugins.lock` (`<path> <ver> h1:<tree-sha256> <licence> <commit>`), `plugins/<escaped-path>@<ver>/` (vendored trees; upper case escaped `!x`).
+- Package: a git tree with `plugin.mod` (`path`, `licence`, `require` lines) and `LICENSE`. Version = strict semver tag `vX.Y.Z`; major 2 and up needs the `/vN` path suffix; a subdir package uses tags `<subdir>/vX.Y.Z`. Branches, shas and pre-releases are refused.
+- `h1:` = sha256 over the sorted lines `sha256(file)  relpath` of the tree without `.git`. Minimum version selection; `update` raises a requirement only when asked.
+- `ISAS_PKG_PROXY` (or `--proxy`): ordered `direct`, `file:///dir`, `https://host`, `off`. Mirror layout: `<escaped-path>/@v/{list,<ver>.info,<ver>.tar}`. `off` refuses every fetch; `vendor` and `verify` need no network once trees are vendored.
+- Refusals (stderr `Name: detail`, exit 2, nothing vendored, lock unchanged): `PkgHashMismatch`, `PkgTagMissing`, `PkgLicenceRefused` (SPDX allowlist AGPL-3.0-only MIT BSD-3-Clause Apache-2.0 CC0-1.0; NC, unknown, or no LICENSE), `PkgNoModFile`, `PkgPathMismatch`, `PkgOffline`, `PkgUnreachable`, `PkgBadTree` (symlink or unsafe tar member). No checksum database: the committed lock is the trust root.
+- Test: `python3 test/isas-pkg-test.py` (local bare repos in a temp dir, `ISAS_PKG_GITBASE` redirects `direct`; no network).
+
 ## Licence notes
 
 This repository is AGPL-3.0-only (LICENSE), with a commercial licence available from the copyright holder (COMMERCIAL-LICENSE.md). Commits up to and including e1d80ab were published under MIT and stay MIT as published. Files under their own licences are listed in NOTICE: the vendored `yantra_wasm.wasm` (AGPL-3.0-only, from the crate `crates/yantra-wasm` of Sassembly; corresponding source and build command in `vendor/NOTICE`), the compiler image `stage1.elf` (AGPL-3.0-only, the sassembly v1.0.2 release asset), and the site stylesheet and theme script (MIT). The native `yantra-run` is built from public Sassembly and is not committed here.

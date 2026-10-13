@@ -1,2 +1,4 @@
 vendor/stage1.elf
 vendor/yantra-run
+__pycache__/
+*.pyc
