@@ -28,7 +28,7 @@ const bySrc = Object.fromEntries(cellFiles.map((f) => [srcOf(f), f]));
 const docs = join(root, 'docs');
 
 // the page under test is the build of THIS source
-for (const f of ['core.mjs', 'isas.mjs', 'isas-names.mjs', 'refusals.mjs', 'parts.mjs', 'svg.mjs', 'md.mjs']) check(sha(readFileSync(join(docs, f))) === sha(readFileSync(join(root, 'kernel', f))), `docs/${f} == kernel/${f}`);
+for (const f of ['core.mjs', 'isas.mjs', 'isas-names.mjs', 'refusals.mjs', 'parts.mjs', 'svg.mjs', 'md.mjs', 'proto.mjs', 'session.mjs', 'machine.mjs']) check(sha(readFileSync(join(docs, f))) === sha(readFileSync(join(root, 'kernel', f))), `docs/${f} == kernel/${f}`);
 check(sha(readFileSync(join(docs, 'vendor/stage1.elf'))) === pins.stage1_sha256 && sha(readFileSync(join(docs, 'vendor/yantra_wasm.wasm'))) === pins.yantra_wasm_sha256, 'docs/vendor assets == pins');
 const examples = readdirSync(join(root, 'examples')).filter((f) => f.endsWith('.isas') && f !== 'images.isas').sort();
 for (const f of [...examples, 'images.isas']) check(sha(readFileSync(join(docs, 'examples', f))) === sha(readFileSync(join(root, 'examples', f))), `docs/examples/${f} == examples/${f}`);
@@ -36,7 +36,9 @@ if (bad) process.exit(1);
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.wasm': 'application/wasm', '.png': 'image/png', '.isas': 'text/plain' };
 const server = createServer((req, res) => {
-  const f0 = join(docs, normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)));
+  const pn = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname));
+  // BR-11: the protocol modules and the mock machine are loaded by the page test from kernel/ and test/ (never from docs/)
+  const f0 = pn.startsWith('/__test/') ? join(root, 'test', pn.slice(8)) : pn.startsWith('/kernel/') ? join(root, pn) : join(docs, pn);
   try { const f = existsSync(f0) && !extname(f0) ? join(f0, 'index.html') : f0; const b = readFileSync(f); res.writeHead(200, { 'content-type': TYPES[extname(f)] ?? 'application/octet-stream' }); res.end(b); } catch { res.writeHead(404); res.end(); }
 }).listen(0, '127.0.0.1');
 await new Promise((r) => server.once('listening', r));
@@ -182,6 +184,24 @@ try {
   // language toggle
   await page.selectOption('#lang', 'en');
   check((await page.locator('#runall').innerText()) === 'Run all', 'the en toggle switches the UI');
+  // ---- BR-11: the multi-message worker protocol in the real browser: stop mid-cell, resume, re-run N replaces, stale badge, Run all = restart ----
+  const br = await page.evaluate(async () => {
+    const { serveWorker, NotebookController, nextTick } = await import('/kernel/proto.mjs');
+    const { mockApi, mockCompile } = await import('/__test/mock-machine.mjs');
+    const { scenarios } = await import('/__test/br11-scenarios.mjs');
+    const res = [];
+    const mk = async () => {   // the "worker" is a MessageChannel peer: real async postMessage with structured clone
+      const api = mockApi(); const ch = new MessageChannel();
+      const handler = serveWorker({ api, compileFragment: async (a) => mockCompile(a), slice: 1000, post: (m) => ch.port2.postMessage(m), tick: () => new Promise((r) => setTimeout(r, 0)) });
+      ch.port2.onmessage = (ev) => handler(ev.data);
+      const ctl = new NotebookController({ spawn: () => ({ postMessage: (m) => ch.port1.postMessage(m), set onmessage(f) { ch.port1.onmessage = f; }, terminate() { ch.port1.close(); ch.port2.close(); } }) });
+      return { ctl, api };
+    };
+    try { await scenarios(mk, (ok, what) => res.push([ok, what])); } catch (e) { res.push([false, 'exception ' + e.message]); }
+    return res;
+  });
+  for (const [ok, what] of br) check(ok, 'BR-11 (browser): ' + what);
+  check(br.length === 19, `BR-11 (browser): ${br.length} protocol checks ran`);
 } catch (e) { console.log('FAIL', e.message); bad++; try { await page.screenshot({ path: join(out, 'isas-fail.png') }); } catch {} }
 check(errs.length === 0, `no page errors${errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''}`);
 await browser.close(); server.close();

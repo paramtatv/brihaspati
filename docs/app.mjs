@@ -12,6 +12,10 @@ const nb = { title: '', created: '', extra: [], cells: [], pins: null, assets: n
 const urls = [];   // object URLs of the current render
 const blobUrl = (bytes, type) => { const u = URL.createObjectURL(new Blob([bytes], { type })); urls.push(u); return u; };
 let busy = false, live = null, notice = '';
+// BR-11: the stop/progress/stale path is used ONLY when the page is given a machine that links fragments (window.__brihSpawn,
+// a spawn() for NotebookController). Without it every run takes the one-shot worker path above, unchanged.
+const liveOn = () => typeof window.__brihSpawn === 'function';
+let ctl = null, idn = 0;
 const blank = (kind) => ({ kind, body: '', saved: null, result: null, state: 'idle', detail: '' });
 
 async function loadAssets() {
@@ -39,6 +43,7 @@ function runInWorker(src) {
 }
 async function runCell(i) {
   const c = nb.cells[i]; if (c.kind !== 'code') return;
+  if (liveOn()) return runCellLive(i);
   c.state = 'running'; c.detail = ''; render();
   try {
     const row = await runInWorker(c.body.replace(/^\s*\n/, '').replace(/\s+$/, '') + '\n');
@@ -47,6 +52,34 @@ async function runCell(i) {
   } catch (err) { c.result = outputOf({ error: err.ename || 'BrihaspatiError' }, []); c.state = 'done'; c.detail = String(err.message || err); }
   render();
 }
+async function ctlGet() {
+  if (!ctl) { const { NotebookController } = await import('./proto.mjs'); ctl = new NotebookController({ spawn: window.__brihSpawn, onChange: () => { pull(); const sig = sigOf(); if (sig !== lastSig) { lastSig = sig; render(); } else paint(); } }); window.__ctl = ctl; }
+  const old = ctl.cells; ctl.cells = new Map();   // same cells, notebook order, current text; deleted cells drop out
+  for (const c of nb.cells) if (c.kind === 'code') { c.id ??= 'c' + (++idn); const o = old.get(c.id); ctl.cells.set(c.id, o ?? { id: c.id, status: 'idle', steps: 0, partial: '', row: null, ranAt: 0, deps: {} }); ctl.cells.get(c.id).src = c.body.replace(/^\s*\n/, '').replace(/\s+$/, '') + '\n'; }
+  return ctl;
+}
+let lastSig = '';
+const sigOf = () => nb.cells.map((c) => (c.id && ctl?.cells.get(c.id) ? ctl.cells.get(c.id).status + ctl.isStale(c.id) + (ctl.cells.get(c.id).partial.length > 0) : '')).join('|') + busy;
+function paint() {   // progress only: update the step counters and partial output in place (keeps buttons clickable)
+  document.querySelectorAll('.cell').forEach((sec, i) => { const c = nb.cells[i], s = c?.id && ctl?.cells.get(c.id); const l = sec.querySelector('.live'); if (l && s) l.textContent = liveText(s); });
+}
+const liveText = (s) => `${t('running')} ${t('steps')}: ${s.steps}` + (s.partial ? ' · ' + new TextDecoder().decode(Uint8Array.from(s.partial.match(/../g), (x) => parseInt(x, 16))) : '');
+function pull() {   // controller results -> notebook cells
+  for (const c of nb.cells) {
+    const s = c.kind === 'code' && c.id && ctl?.cells.get(c.id); if (!s || !s.row || c.applied === s.row) continue;
+    c.applied = s.row; const row = s.row;
+    try { c.result = outputOf({ ...row, output_hex: row.output_hex ?? row.stdout_hex }, row.files || []); } catch { c.result = outputOf({ error: row.refusal || 'BrihaspatiError' }, []); }
+    c.state = 'done'; c.detail = s.status === 'stopped' ? t('stopped') : (row.why || (row.error ? row.halt || '' : ''));
+  }
+}
+async function runCellLive(i) {
+  const c = nb.cells[i]; if (c.kind !== 'code') return;
+  const k = await ctlGet(); c.state = 'running'; c.detail = ''; render();
+  const r = await k.run(c.id);
+  if (r.t === 'error') { c.result = outputOf({ error: r.name }, []); c.state = 'done'; c.detail = r.why; } else pull();
+  render();
+}
+async function runAllLive() { const k = await ctlGet(); for (const c of nb.cells) if (c.kind === 'code') c.state = 'running'; render(); const r = await k.runAll(); if (r.t === 'error') notice = r.name + ': ' + r.why; pull(); for (const c of nb.cells) if (c.state === 'running') c.state = 'idle'; render(); }
 async function guard(fn) { if (busy) return; busy = true; render(); try { await fn(); } finally { busy = false; render(); window.__idle = (window.__idle || 0) + 1; } }
 
 // ---- notebook <-> file ----
@@ -127,22 +160,26 @@ function render() {
   for (const id of ['embedall', 'runall', 'newnb', 'addcode', 'addnote', 'savenb', 'opennb', 'examples']) $(id).disabled = busy || (id === 'runall' && !nb.cells.length);
   for (const u of urls.splice(0)) URL.revokeObjectURL(u);
   const list = $('cells'); list.replaceChildren();
+  const live2 = liveOn();
+  $('stopnb').hidden = !(live2 && busy);
   nb.cells.forEach((c, i) => {
     const ta = el('textarea', { class: c.kind === 'code' ? 'src' : 'note', spellcheck: 'false', rows: String(Math.max(2, c.body.split('\n').length)), 'aria-label': t(c.kind) });
     ta.value = c.body; ta.addEventListener('input', () => { c.body = ta.value; ta.rows = Math.max(2, ta.value.split('\n').length); if (c.kind === 'note') { const m = ta.closest('.cell').querySelector('.md'); m.replaceChildren(...mdParse(c.body).map(blk)); } });
     const btn = (key, fn, dis = false) => { const b = el('button', { type: 'button', class: 'btn btn--sm', onclick: fn }, t(key)); b.disabled = busy || dis; return b; };
     const bar = el('div', { class: 'cbar' }, el('span', { class: 'num' }, `[${i + 1}] ${t(c.kind)}`),
       ...(c.kind === 'code' ? [btn('run', () => guard(() => runCell(i)))] : []),
+      ...(live2 && c.kind === 'code' && c.state === 'running' ? [el('button', { type: 'button', class: 'btn btn--sm stop', onclick: () => ctl?.stop() }, t('stop'))] : []),
+      ...(live2 && c.kind === 'code' && c.id && ctl?.isStale(c.id) ? [el('span', { class: 'badge stale' }, t('stale'))] : []),
       btn('up', () => { [nb.cells[i - 1], nb.cells[i]] = [nb.cells[i], nb.cells[i - 1]]; render(); }, i === 0),
       btn('down', () => { [nb.cells[i + 1], nb.cells[i]] = [nb.cells[i], nb.cells[i + 1]]; render(); }, i === nb.cells.length - 1),
       btn('kind', () => { c.kind = c.kind === 'code' ? 'note' : 'code'; if (c.kind === 'note') { c.saved = c.result = null; } render(); }),
       btn('del', () => { nb.cells.splice(i, 1); render(); }));
-    list.append(el('section', { class: 'cell cell--' + c.kind, 'data-i': String(i) }, bar, ta, ...(c.kind === 'code' ? [outputView(c)] : [el('div', { class: 'md' }, ...mdParse(c.body).map(blk))])));
+    list.append(el('section', { class: 'cell cell--' + c.kind, 'data-i': String(i) }, bar, ta, ...(c.kind === 'code' ? [...(live2 && c.state === 'running' ? [el('div', { class: 'live' }, liveText(ctl?.cells.get(c.id) ?? { steps: 0, partial: '' }))] : []), outputView(c)] : [el('div', { class: 'md' }, ...mdParse(c.body).map(blk))])));
   });
   $('empty').hidden = nb.cells.length > 0;
   for (const n of document.querySelectorAll('[data-i18n]')) n.textContent = t(n.dataset.i18n);
   document.documentElement.lang = LANG();
-  window.__nb = nb;
+  window.__nb = nb; window.__render = render;
 }
 
 // ---- wiring ----
@@ -150,7 +187,8 @@ $('title').addEventListener('input', () => { nb.title = $('title').value; });
 $('addcode').onclick = () => { nb.cells.push(blank('code')); render(); };
 $('addnote').onclick = () => { nb.cells.push(blank('note')); render(); };
 $('newnb').onclick = () => { Object.assign(nb, { title: '', created: '', extra: [], cells: [blank('code')] }); notice = ''; render(); };
-$('runall').onclick = () => guard(async () => { for (let i = 0; i < nb.cells.length; i++) await runCell(i); });
+$('stopnb').onclick = () => ctl?.stop();
+$('runall').onclick = () => guard(async () => { if (liveOn()) return runAllLive(); for (let i = 0; i < nb.cells.length; i++) await runCell(i); });
 $('opennb').onclick = () => $('file').click();
 $('file').onchange = async () => {
   const fs = [...$('file').files]; $('file').value = ''; if (!fs.length) return;
