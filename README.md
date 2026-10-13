@@ -18,6 +18,45 @@ Sassembly compiler (Sassembly compiling Sassembly), and the program it emits run
 compiled to WebAssembly. All of it happens in the browser tab: there is no server. The results are checked
 to be byte-identical to the same cell run natively.
 
+## Why Sanskrit and Sassembly
+
+Sassembly makes three promises: the numbers are measured, the results can be checked, and the code reads as Sanskrit.
+**Brihaspati is the learning ground for that:** you learn Sanskrit grammar and RISC-V together, cell by cell,
+and every result on the page is one the native run reproduces.
+
+### Performance: predictable and small, not fast
+
+- **Same counts on every run.** Each cell's compile and run instruction counts are equal in the browser and natively
+  (`print_x.t1`: 73,268,811 and 44); `test/agree.mjs` checks all 19 sample cells.
+- **Small.** The RV64 interpreter is 219,508 bytes of wasm, the compiler image 923,042 bytes, the page JavaScript about 48 KB.
+- **Reproducible.** The compiler compiles itself to a byte-identical copy (Stage 2 == Stage 1, 1,399,434 octets, measured
+  in a fresh clone; see the [Sassembly README](https://github.com/paramtatv/sassembly)). Two independent builds of the wasm
+  interpreter give the same sha256 ([docs/vendor/NOTICE](docs/vendor/NOTICE)).
+- **No server.** Compiling and running happen in your tab; the page's only outside request is its web fonts.
+- **Not a speed claim.** Cells are interpreted: a compile takes about 9 s in desktop Chromium. Sassembly's native backend is not used here; on
+  x86-64 (2026-10-10, development branch) it took 1.46× to 8.0× the time of `gcc -O2` on five test kernels.
+
+### Integrity: results you can check
+
+- **Browser equals native.** Emitted program (sha256), output, status, instruction counts, guest RAM and heap high water;
+  `test/agree.mjs` first proves it reports a flipped field.
+- **Pinned.** The compiler, the wasm interpreter and the native runner are sha256-pinned; the drivers refuse a mismatch.
+- **No imports.** The interpreter is instantiated with an empty import object: no system call, clock or network.
+- **Refusals, not silent errors.** Checked overflow, a write at -1, a read past the end and division by zero stop with
+  statuses 860, 861, 853 and 862, each named in Sanskrit.
+- **Devanagari only.** Sassembly's repertoire gate rejects any Latin character in assembly source, so there are no
+  look-alike letters and no hidden bidirectional (Trojan Source) text.
+
+### Usability: code that reads as Sanskrit
+
+- **Instructions are sentences.** In Sassembly's assembly layer the verb comes first and each operand carries a kāraka
+  sigil for its role, so operand order is free: `योगः कम् खन गन ।` and `योगः खन गन कम् ।` are the same instruction.
+  Notebook cells use the T1 language that compiles to it.
+- **Names are words.** `अष्टकॱमुद्रणम्` prints an octet, `प्रत्यागमनम्` returns, `शून्यविभाजननिषेधः` is the division-by-zero refusal.
+- **Nothing to install.** Open the page, write a cell, press चालय.
+- **Sanskrit first,** with an English and Hindi toggle.
+- **Plain-text notebooks.** `.isas` files keep cells and their saved results; a badge flags a result a re-run does not reproduce.
+
 ## A cell looks like this
 
 This is [`cells/print_x.t1`](cells/print_x.t1). It prints the byte 88 (`X`) and returns 7.
