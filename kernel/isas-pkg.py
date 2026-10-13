@@ -49,7 +49,7 @@ def split_path(path):
     if m:
         base, major = m.group(1), int(m.group(2))
     parts = base.split("/")
-    if len(parts) < 3 or not all(re.match(r"^[A-Za-z0-9._~-]+$", p) for p in parts):
+    if len(parts) < 3 or not all(re.match(r"^[A-Za-z0-9._~-]+$", p) and p not in (".", "..") for p in parts):
         raise Pkg("PkgPathMismatch", "bad module path %r" % path)
     return "/".join(parts[:3]), "/".join(parts[3:]), major
 
@@ -63,10 +63,26 @@ def check_ver(path, ver):
         raise Pkg("PkgTagMissing", "%s@%s: major version does not fit the path" % (path, ver))
 
 
+def inside(root, p):
+    """defense in depth: p resolves (symlinks followed) to root itself or below it"""
+    r, q = os.path.realpath(root), os.path.realpath(p)
+    return os.path.commonpath([r, q]) == r
+
+
+def safe_join(root, *parts):
+    p = os.path.join(root, *parts)
+    if not inside(root, p):
+        raise Pkg("PkgBadTree", "path escapes its root: %s" % "/".join(parts))
+    return p
+
+
 # ---- tree hash and tar -------------------------------------------------------------------------------------------
 def tree_files(root):
     out = []
-    for dp, dn, fn in os.walk(root):
+    for dp, dn, fn in os.walk(root, followlinks=False):
+        for d in dn:  # os.walk lists directory symlinks in dn: refuse them all (even .git)
+            if os.path.islink(os.path.join(dp, d)):
+                raise Pkg("PkgBadTree", "symlink: " + os.path.relpath(os.path.join(dp, d), root))
         dn[:] = sorted(d for d in dn if d != ".git")
         for f in fn:
             p = os.path.join(dp, f)
@@ -81,6 +97,15 @@ def tree_hash(root):
     lines = "".join("%s  %s\n" % (hashlib.sha256(open(os.path.join(root, r), "rb").read()).hexdigest(), r)
                     for r in tree_files(root))
     return "h1:" + hashlib.sha256(lines.encode()).hexdigest()
+
+
+def copy_tree(src, dest):
+    """copy exactly the hashed files (symlink-free, verified by tree_files); never follows or recreates links"""
+    for r in tree_files(src):
+        t = safe_join(dest, *r.split("/"))
+        os.makedirs(os.path.dirname(t), exist_ok=True)
+        shutil.copyfile(os.path.join(src, r), t, follow_symlinks=False)
+    os.makedirs(dest, exist_ok=True)
 
 
 def make_tar(root):
@@ -99,9 +124,10 @@ def extract_tar(data, dest):
     with tarfile.open(fileobj=io.BytesIO(data)) as t:
         for m in t.getmembers():
             n = m.name
-            if not m.isreg() or n.startswith("/") or ".." in n.split("/") or "\\" in n:
+            if (not m.isreg() or not n or n.startswith("/") or "\\" in n
+                    or any(x in ("", ".", "..") for x in n.split("/"))):
                 raise Pkg("PkgBadTree", "unsafe tar member %r" % n)
-            p = os.path.join(dest, n)
+            p = safe_join(dest, *n.split("/"))
             os.makedirs(os.path.dirname(p), exist_ok=True)
             open(p, "wb").write(t.extractfile(m).read())
 
@@ -187,7 +213,9 @@ class Direct:
             src = os.path.join(tmp, "c", sub)
             if not os.path.isdir(src):
                 raise Unavail("subdir %s absent in %s" % (sub, ver), missing=True)
-            shutil.copytree(src, dest, symlinks=True)
+            if os.path.islink(src):
+                raise Pkg("PkgBadTree", "symlink: subdir %s" % sub)
+            copy_tree(src, dest)
             return commit
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
@@ -286,6 +314,7 @@ def read_req(d):
             if w:
                 if len(w) != 3 or w[0] != "require" or not SEMVER.match(w[2]):
                     raise Pkg("IsasPluginBadManifest", "plugins.req line %r" % ln)
+                split_path(w[1])
                 out[w[1]] = w[2]
     return out
 
@@ -304,6 +333,9 @@ def read_lock(d):
                 continue
             if len(w) != 5 or not w[2].startswith("h1:"):
                 raise Pkg("IsasPluginBadManifest", "plugins.lock line %r" % ln)
+            split_path(w[0])
+            if not SEMVER.match(w[1]):
+                raise Pkg("IsasPluginBadManifest", "plugins.lock line %r" % ln)
             out[(w[0], w[1])] = {"h1": w[2], "licence": w[3], "commit": w[4]}
     return out
 
@@ -314,7 +346,10 @@ def lock_text(lock):
 
 
 def vdir(d, path, ver):
-    return os.path.join(d, "plugins", "%s@%s" % (esc(path), ver))
+    split_path(path)
+    if not SEMVER.match(ver or ""):
+        raise Pkg("PkgTagMissing", "%r is not a strict semver tag" % ver)
+    return safe_join(os.path.join(d, "plugins"), "%s@%s" % (esc(path), ver))
 
 
 # ---- MVS ----------------------------------------------------------------------------------------------------------
@@ -352,7 +387,7 @@ def commit_state(d, req, best, info, lock_old):
                 continue
             shutil.rmtree(dest)
         os.makedirs(os.path.dirname(dest), exist_ok=True)
-        shutil.copytree(i["tree"], dest)
+        copy_tree(i["tree"], dest)
     # prune superseded versions of the same paths
     for (p, v) in lock_old:
         if (p, v) not in lock and os.path.isdir(vdir(d, p, v)):
@@ -414,7 +449,7 @@ def cmd_vendor(d, res, _):
         if os.path.isdir(dest):
             shutil.rmtree(dest)
         os.makedirs(os.path.dirname(dest), exist_ok=True)
-        shutil.copytree(tree, dest)
+        copy_tree(tree, dest)
 
 
 def cmd_verify(d, res, _):

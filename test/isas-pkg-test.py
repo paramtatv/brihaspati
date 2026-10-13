@@ -305,11 +305,87 @@ d = nb("sub")
 ok(d, "add subdir package (tag tools/fmt/v1.0.0)", "add", S)
 check(lockof(d).split()[1] == "v1.0.0" and os.path.isfile(os.path.join(d, "plugins", S + "@v1.0.0", "plugin.mod")), "subdir package resolved by sub/ prefixed tag")
 
+# ---- 13 R1: path traversal and symlinks ---------------------------------------------------------------------------
+def linkrepo(root, files, links):
+    """repo with tag v1.0.0 whose tree also holds symlinks {relpath: target}"""
+    w, bare = mkrepo(root, [("v1.0.0", files)])
+    for rel, tgt in links.items():
+        os.makedirs(os.path.dirname(os.path.join(w, rel)) or w, exist_ok=True)
+        os.symlink(tgt, os.path.join(w, rel))
+    git("add", "-A", cwd=w)
+    git("commit", "-q", "--amend", "-m", "v1.0.0", cwd=w)
+    git("tag", "-f", "v1.0.0", cwd=w)
+    git("push", "-q", "--force", bare, "HEAD:refs/heads/master", "refs/tags/v1.0.0", cwd=w)
+    return w
+
+
+OUT = os.path.join(T, "outside")
+os.makedirs(OUT)
+open(os.path.join(OUT, "secret"), "w").write("s\n")
+for seg, nm in (("..", "dotdot"), (".", "dot")):
+    d = nb(nm)
+    refused(d, "PkgPathMismatch", "module path with %r segment" % seg, "add", "example.test/acme/%s@v1.0.0" % seg)
+    refused(d, "PkgPathMismatch", "module path with %r as subdir segment" % seg, "add", "example.test/acme/geom/%s@v1.0.0" % seg)
+refused(nb("empty"), "PkgPathMismatch", "module path with empty segment", "add", "example.test/acme//geom@v1.0.0")
+refused(nb("abs"), "PkgPathMismatch", "absolute module path", "add", "/example.test/acme/geom@v1.0.0")
+refused(nb("bsl"), "PkgPathMismatch", "backslash in module path", "add", "example.test\\acme\\geom@v1.0.0")
+d = nb("tamper-req")
+os.makedirs(d)
+open(os.path.join(d, "plugins.req"), "w").write("require example.test/acme/../../x v1.0.0\n")
+refused(d, "PkgPathMismatch", "plugins.req with .. segment", "update")
+open(os.path.join(d, "plugins.req"), "w").write("")
+open(os.path.join(d, "plugins.lock"), "w").write("example.test/acme/.. v1.0.0 h1:00 MIT -\n")
+refused(d, "PkgPathMismatch", "plugins.lock with .. segment", "mirror", os.path.join(T, "mout"))
+check(not os.path.exists(os.path.join(T, "mout")), "no mirror output written for a tampered lock")
+
+LK = "example.test/acme/lnk"
+good = pkg(LK, "l")
+linkrepo("example.test/acme/lnk", good, {})
+ok(nb("lnk-ctl"), "add repo without links (control)", "add", LK + "@v1.0.0")
+for nm, links, what in (
+        ("flink", {"alias.t1": "main.t1"}, "file symlink in module tree"),
+        ("dlink", {"sub/alias": "."}, "directory symlink inside module tree"),
+        ("dlink-out", {"escape": OUT}, "directory symlink pointing outside the root"),
+        ("flink-out", {"leak": os.path.join(OUT, "secret")}, "file symlink pointing outside the root")):
+    linkrepo("example.test/acme/lnk", dict(good, **{"sub/keep": "k\n"}), links)
+    d = nb(nm)
+    refused(d, "PkgBadTree", what, "add", LK + "@v1.0.0")
+    check(lockof(d) is None and vendored(d) == [] and not os.path.exists(os.path.join(d, "plugins", LK + "@v1.0.0")), what + ": nothing vendored")
+# hash time: a link planted in an already vendored tree is refused, not silently ignored
+linkrepo("example.test/acme/lnk", good, {})
+d = nb("lnk-vfy")
+ok(d, "add (control for planted link)", "add", LK + "@v1.0.0")
+ok(d, "verify clean (control)", "verify")
+vt = os.path.join(d, "plugins", LK + "@v1.0.0")
+os.symlink(OUT, os.path.join(vt, "planted"))
+refused(d, "PkgBadTree", "verify with a planted directory symlink", "verify")
+os.remove(os.path.join(vt, "planted"))
+os.symlink("main.t1", os.path.join(vt, "planted"))
+refused(d, "PkgBadTree", "verify with a planted file symlink", "verify")
+os.remove(os.path.join(vt, "planted"))
+os.symlink(OUT, os.path.join(vt, ".git"))
+refused(d, "PkgBadTree", "verify with a .git directory symlink", "verify")
+os.remove(os.path.join(vt, ".git"))
+ok(d, "verify after removing links (control)", "verify")
+# nested .git content is never copied (it is not hashed)
+linkrepo("example.test/acme/lnk", dict(good, **{"x/.git/hook": "evil\n"}), {})
+d = nb("lnk-git")
+ok(d, "add repo with nested .git dir", "add", LK + "@v1.0.0")
+check(not os.path.exists(os.path.join(d, "plugins", LK + "@v1.0.0", "x", ".git")), "nested .git (unhashed) is not copied into the vendored tree")
+
 # ---- 12 usage --------------------------------------------------------------------------------------------------------
 rc, _ = run(nb("usage"), "frobnicate")
 check(rc == 64, "unknown command: usage, rc 64")
 rc, _ = run(nb("usage"), "add")
 check(rc == 64, "add without a path: usage, rc 64")
+
+# cross-implementation vector: the same tree hashed by kernel/isas.mjs treeHash (UTF-8 byte order; UTF-16 order differs here)
+import importlib.util
+_s = importlib.util.spec_from_file_location("isas_pkg", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "kernel", "isas-pkg.py"))
+_m = importlib.util.module_from_spec(_s); _s.loader.exec_module(_m)
+V = os.path.join(T, "vec"); os.makedirs(V)
+for name, body in (("\uff61", b"a"), ("\U0001F600", b"b"), ("Z", b"c")): open(os.path.join(V, name), "wb").write(body)
+check(_m.tree_hash(V) == "h1:57d3aae20dcd495f793dcb9b27413d443d8f228c640ceb511599200e7419a8b6", "tree_hash sorts by UTF-8 bytes: matches kernel/isas.mjs treeHash on a non-BMP vector")
 
 shutil.rmtree(T, ignore_errors=True)
 print("%d checks, %d passed, %d failed" % (n, n - bad, bad))
