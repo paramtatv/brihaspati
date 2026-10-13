@@ -193,6 +193,8 @@ check(safeRelPath('pics/a.png') && !safeRelPath('../a.png') && !safeRelPath('/et
   const vend = (t = tree) => new Map([...t].map(([k, v]) => [D + k, v]));
   const lk = (o = {}) => formatLock([{ path: 'github.com/O/r', version: 'v1.2.3', h1, licence: 'MIT', commit: 'c'.repeat(40), ...o }]);
   check(h1 === await treeHash(new Map([...tree].reverse())), 'treeHash does not depend on entry order');
+  { const e = new TextEncoder(), v = new Map([['\uff61', e.encode('a')], ['\u{1F600}', e.encode('b')], ['Z', e.encode('c')]]);   // UTF-8 vs UTF-16 order differ here; vector computed by kernel/isas-pkg.py tree_hash (PLUG-PR)
+    check(await treeHash(v) === '57d3aae20dcd495f793dcb9b27413d443d8f228c640ceb511599200e7419a8b6', 'treeHash sorts by UTF-8 bytes: matches the Python resolver on a non-BMP vector'); }
   check(pk().includes('plugins/github.com/!o/r@v1.2.3/a.t1') && (await write(parse(pk()))).text === pk(), 'packaged plugin: header round-trips byte-identically (path escaping !o)');
   const withFileLock = (f) => { const m = vend(); m.set('n.isas.d/plugins.lock', te.encode(f)); return m; };
   r = await resolvePlugins(parse(pk()), withFileLock(lk()), { name: 'n' });

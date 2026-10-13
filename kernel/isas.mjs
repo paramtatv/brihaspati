@@ -103,7 +103,10 @@ export const pluginsOf = (nb) => readPluginHeader(nb.header, null);
 export async function treeHash(entries) {
   const lines = [];
   for (const [rel, bytes] of entries) lines.push([rel, `${await sha256hex(bytes)}  ${rel}\n`]);
-  lines.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  // Go/Python rule: order by the UTF-8 bytes of the path, not by UTF-16 code units (they differ above U+FFFF).
+  const enc = new TextEncoder(), key = new Map(lines.map(([r]) => [r, enc.encode(r)]));
+  const cmp = (x, y) => { for (let i = 0; i < x.length && i < y.length; i++) if (x[i] !== y[i]) return x[i] - y[i]; return x.length - y.length; };
+  lines.sort((a, b) => cmp(key.get(a[0]), key.get(b[0])));
   return sha256hex(new TextEncoder().encode(lines.map((x) => x[1]).join('')));
 }
 // Check the bytes of every plugin. `files`: Map of full path -> bytes (side files, vendored trees, `<name>.isas.d/plugins.lock`).
