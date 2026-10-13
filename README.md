@@ -1,9 +1,46 @@
-# बृहस्पति
+# बृहस्पति (Brihaspati)
+
+*A notebook for Sassembly: write a cell, run it on an RV64 interpreter in your browser, and get the same bytes as the native run.*
 
 [![बृहस्पति: the .isas notebook page running a print, a compute cell and a refusal, then a notebook with images](docs/media/brihaspati-demo.gif)](docs/media/brihaspati-demo.mp4)
 
 *A 70-second screen recording of the notebook page opening `.isas` notebooks: a print, a compute cell showing status and steps, a refusal named in Sanskrit, then `images.isas` with a Markdown note and the PNG and SVG its cell wrote. Click for the mp4.*
 
+
+## What it is
+
+Brihaspati is a notebook and cell kernel for Sassembly, the Sanskrit-native RISC-V assembly language of the
+Paramtatva project (public product repository: github.com/paramtatv/sassembly). A cell is compiled by the
+self-hosted Sassembly compiler image, and the emitted program runs on `yantra`, the RV64 interpreter, either
+in the browser (yantra-wasm, no imports) or natively (`yantra-run`). The two runs are compared field by field.
+The notebook page is live at https://paramtatv.github.io/brihaspati.
+
+## Quickstart
+
+Needs `node`, `curl` and `sh`; `python3` for the native run. Run from the repository root.
+
+    sh kernel/fetch-stage1.sh                 # fetch the compiler image (sha256-pinned release asset)
+    node kernel/cell.mjs cells/print_x.t1     # run one cell on yantra-wasm; prints a JSON row
+    sh kernel/native.sh cells/print_x.t1      # same row from the native yantra-run (needs vendor/yantra-run)
+    node test/agree.mjs                       # native == expected == wasm for every cell
+    sh tools/build-docs.sh                    # build the notebook page into docs/
+
+Open `docs/index.html` through a local web server, or use the hosted page above.
+
+## Status
+
+Works today (Phase 1a, and the notebook page):
+- A T1 cell compiles and runs on yantra-wasm with a result equal to the native run (emitted ELF, output, finisher status, instruction count, guest RAM size, heap high water). `test/agree.mjs` checks this for the 19 cells.
+- The notebook page: code and note cells, edit, run, run all, add, delete, move, open and save `.isas` files, a saved-vs-rerun mismatch badge, Sanskrit-first UI with en/hi toggle.
+- Cells that write PNG, JPEG or SVG files show them as image outputs (SVG sanitised).
+- Refusals are named in Sanskrit (finisher statuses 853, 860, 861, 862).
+
+Pending or limited (stated as in the code, not as plans):
+- One fixed entry per cell, no state or import between cells; every cell starts a fresh engine.
+- The persistent-machine interface (`kernel/machine.mjs`, `kernel/session.mjs`: cells linked into a live image, interrupt and resume) is the L28 work. Its yantra-wasm adapter refuses run-after-run and snapshot/restore (`Unsupported`), and the fragment compiler is not built (`FragmentCompilerUnavailable`); no cell runs in a live session yet.
+- No compile error carries a source position. A phone browser is untested.
+
+## Details
 
 Phase 1a: a T1 cell is compiled by the self-hosted Sassembly v1.0.2 compiler image running on
 yantra-wasm (node), and the emitted program runs on yantra-wasm. The result equals the native run
