@@ -5,6 +5,7 @@ import { partBytes, imageParts } from './parts.mjs';
 import { sanitizeSvg } from './svg.mjs';
 import { mdParse, safeHref, safeRelPath } from './md.mjs';
 import { LANG, setLang, t } from './i18n.mjs';
+import { Library } from './library.mjs';
 
 const $ = (id) => document.getElementById(id);
 const TIMEOUT_MS = 180000;
@@ -101,6 +102,66 @@ async function save(embedAll) {
 }
 const fail = (e) => { notice = e instanceof IsasError ? `${e.name}: ${e.why}${e.line ? ' (' + e.line + ')' : ''}` : String(e.message || e); render(); };
 
+// ---- library: the sidebar list of saved notebooks (kernel/library.mjs; localStorage, in-memory when unavailable) ----
+let store = null; try { store = window.localStorage; } catch {}
+const lib = new Library(store);
+let libId = null, libWarn = '', saveTimer = 0, lastTitle = '', renaming = null, sideOpen = true;
+const label = () => nb.title.trim() || t('untitled');
+const SIDE_KEY = 'brih.side', narrow = () => { try { return matchMedia('(max-width:860px)').matches; } catch { return false; } };
+try { const v = localStorage.getItem(SIDE_KEY); sideOpen = v === null ? !narrow() : v === '1'; } catch { sideOpen = !narrow(); }
+function applySide() { $('shell').classList.toggle('side-off', !sideOpen); $('sidetoggle').setAttribute('aria-expanded', String(sideOpen)); }
+async function flush() {   // write the current notebook into its entry (skipped when the text is unchanged)
+  clearTimeout(saveTimer); saveTimer = 0;
+  if (!libId || !nb.pins) return;
+  try {
+    const text = (await save(true)).text;
+    lib.refresh();
+    if (!lib.items.some((r) => r.id === libId)) { const r = lib.create(label(), text); libWarn = r.ok ? '' : r.why; if (r.ok) { libId = r.id; lastTitle = nb.title; } renderSide(); return; }
+    if (nb.title !== lastTitle) { lib.rename(libId, label()); lastTitle = nb.title; }
+    const r = lib.update(libId, text); libWarn = r.ok ? '' : r.why; lib.setCurrent(libId);
+  } catch (e) { libWarn = 'storage'; }
+  renderSide();
+}
+const scheduleSave = () => { if (!libId) return; clearTimeout(saveTimer); saveTimer = setTimeout(flush, 600); };
+async function addEntry() {   // the notebook now in nb becomes a NEW entry
+  const r = lib.create(label(), (await save(true)).text); libWarn = r.ok ? '' : r.why;
+  libId = r.ok ? r.id : null; lastTitle = nb.title; renaming = null;
+}
+async function openEntry(id, skipFlush = false) {
+  if (!skipFlush) await flush();
+  const e = lib.get(id); if (!e) { lib.refresh(); renderSide(); return; }
+  try { await load(e.text); } catch (er) { fail(er); return; }
+  if (e.title !== label()) nb.title = e.title;
+  libId = id; lastTitle = nb.title; renaming = null; lib.setCurrent(id); render();
+}
+async function newEntry() { await flush(); Object.assign(nb, { title: '', created: '', extra: [], cells: [blank('code')], side: new Map() }); notice = ''; await addEntry(); render(); }
+async function adopt(fn) { await flush(); await fn(); await addEntry(); render(); }   // import: load first (a failure leaves the current notebook untouched), then a new entry
+async function deleteEntry(id) {
+  const r = lib.items.find((x) => x.id === id); if (!r || !confirm(t('confirmdel', r.title))) return;
+  if (id === libId) clearTimeout(saveTimer);
+  lib.remove(id);
+  if (id === libId) { libId = null; const next = lib.current; if (next) await openEntry(next, true); else await newEntry(); } else renderSide();
+}
+function commitRename(id, v) { const r = lib.rename(id, v.trim() || t('untitled')); renaming = null; if (r.ok && id === libId) { nb.title = r.title; lastTitle = nb.title; render(); scheduleSave(); } else renderSide(); }
+function whenText(iso) { try { return new Date(iso).toLocaleString(LANG() === 'sa' ? 'hi' : LANG(), { dateStyle: 'medium', timeStyle: 'short' }); } catch { return iso; } }
+function renderSide() {
+  const ul = $('nblist'); ul.replaceChildren(); applySide();
+  for (const r of lib.list()) {
+    if (renaming === r.id) {
+      const inp = el('input', { type: 'text', value: r.title, 'aria-label': t('rename') }); let done = false;
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { done = true; commitRename(r.id, inp.value); } else if (e.key === 'Escape') { done = true; renaming = null; renderSide(); } });
+      inp.addEventListener('blur', () => { if (!done) { done = true; commitRename(r.id, inp.value); } });
+      ul.append(el('li', { class: r.id === libId ? 'cur' : '' }, inp)); setTimeout(() => { inp.focus(); inp.select(); }, 0); continue;
+    }
+    const pick = el('button', { type: 'button', class: 'pick', onclick: () => { if (r.id !== libId && !busy) openEntry(r.id); } }, el('span', { class: 'nm' }, r.title), el('span', { class: 'when' }, whenText(r.modified)));
+    const act = (txt, key, fn) => { const b = el('button', { type: 'button', class: 'act', 'aria-label': t(key), title: t(key), onclick: fn }, txt); b.disabled = busy; return b; };
+    pick.disabled = busy;
+    const li = el('li', r.id === libId ? { class: 'cur', 'aria-current': 'true' } : {}, pick, act('✎', 'rename', () => { renaming = r.id; renderSide(); }), act('×', 'delnb', () => deleteEntry(r.id)));
+    ul.append(li);
+  }
+  const n = $('snote'); n.textContent = !lib.persistent ? t('nostore') : libWarn === 'quota' ? t('quota') : libWarn === 'toolarge' ? t('toolarge') : t('here'); n.hidden = false;
+}
+
 // ---- view ----
 const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) k.startsWith('on') ? e.addEventListener(k.slice(2), v) : k === 'class' ? (e.className = v) : e.setAttribute(k, v); for (const k of kids) e.append(k); return e; };
 const showParts = (parts, label) => {
@@ -164,7 +225,7 @@ function render() {
   $('stopnb').hidden = !(live2 && busy);
   nb.cells.forEach((c, i) => {
     const ta = el('textarea', { class: c.kind === 'code' ? 'src' : 'note', spellcheck: 'false', rows: String(Math.max(2, c.body.split('\n').length)), 'aria-label': t(c.kind) });
-    ta.value = c.body; ta.addEventListener('input', () => { c.body = ta.value; ta.rows = Math.max(2, ta.value.split('\n').length); if (c.kind === 'note') { const m = ta.closest('.cell').querySelector('.md'); m.replaceChildren(...mdParse(c.body).map(blk)); } });
+    ta.value = c.body; ta.addEventListener('input', () => { c.body = ta.value; scheduleSave(); ta.rows = Math.max(2, ta.value.split('\n').length); if (c.kind === 'note') { const m = ta.closest('.cell').querySelector('.md'); m.replaceChildren(...mdParse(c.body).map(blk)); } });
     const btn = (key, fn, dis = false) => { const b = el('button', { type: 'button', class: 'btn btn--sm', onclick: fn }, t(key)); b.disabled = busy || dis; return b; };
     const bar = el('div', { class: 'cbar' }, el('span', { class: 'num' }, `[${i + 1}] ${t(c.kind)}`),
       ...(c.kind === 'code' ? [btn('run', () => guard(() => runCell(i)))] : []),
@@ -179,14 +240,18 @@ function render() {
   $('empty').hidden = nb.cells.length > 0;
   for (const n of document.querySelectorAll('[data-i18n]')) n.textContent = t(n.dataset.i18n);
   document.documentElement.lang = LANG();
-  window.__nb = nb; window.__render = render;
+  renderSide(); scheduleSave();
+  window.__nb = nb; window.__render = render; window.__lib = lib; window.__flush = flush;
 }
 
 // ---- wiring ----
-$('title').addEventListener('input', () => { nb.title = $('title').value; });
+$('title').addEventListener('input', () => { nb.title = $('title').value; scheduleSave(); });
+$('sidetoggle').onclick = () => { sideOpen = !sideOpen; try { localStorage.setItem(SIDE_KEY, sideOpen ? '1' : '0'); } catch {} applySide(); };
+addEventListener('storage', (e) => { if (e.key === null || String(e.key).startsWith('brih.lib.')) { lib.refresh(); renderSide(); } });
+addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
 $('addcode').onclick = () => { nb.cells.push(blank('code')); render(); };
 $('addnote').onclick = () => { nb.cells.push(blank('note')); render(); };
-$('newnb').onclick = () => { Object.assign(nb, { title: '', created: '', extra: [], cells: [blank('code')] }); notice = ''; render(); };
+$('newnb').onclick = () => guard(newEntry);
 $('stopnb').onclick = () => ctl?.stop();
 $('runall').onclick = () => guard(async () => { if (liveOn()) return runAllLive(); for (let i = 0; i < nb.cells.length; i++) await runCell(i); });
 $('opennb').onclick = () => $('file').click();
@@ -196,7 +261,7 @@ $('file').onchange = async () => {
   // sizes are checked before anything is read, so a huge file cannot hang the tab
   const big = fs.find((f) => f.size > (f === main ? MAX_ISAS * 4 : MAX_SIDE));   // MAX_ISAS counts characters; 4 octets each at most
   if (big) { fail(new IsasError('IsasTooLarge', `${big.name} is ${big.size} octets`, 0)); return; }
-  try { const side = new Map(); for (const f of fs) if (f !== main) side.set(f.name, new Uint8Array(await f.arrayBuffer())); await load(await main.text(), side); render(); } catch (e) { fail(e); }
+  try { const side = new Map(); for (const f of fs) if (f !== main) side.set(f.name, new Uint8Array(await f.arrayBuffer())); await adopt(async () => load(await main.text(), side)); } catch (e) { fail(e); }
 };
 $('savenb').onclick = async () => {
   try {
@@ -210,7 +275,7 @@ $('savenb').onclick = async () => {
 };
 $('examples').onchange = async () => {
   const f = $('examples').value; $('examples').value = ''; if (!f) return;
-  try { const r = await fetch('examples/' + f); if (!r.ok) throw new Error(f + ': HTTP ' + r.status); await load(await r.text()); render(); } catch (e) { fail(e); }
+  try { const r = await fetch('examples/' + f); if (!r.ok) throw new Error(f + ': HTTP ' + r.status); const txt = await r.text(); await adopt(() => load(txt)); } catch (e) { fail(e); }
 };
 $('lang').onchange = () => { setLang($('lang').value); render(); };
 (async () => {
@@ -220,7 +285,10 @@ $('lang').onchange = () => { setLang($('lang').value); render(); };
     const idx = await (await fetch('examples/index.json')).json();
     for (const e of idx) $('examples').add(new Option(e.title + ' — ' + e.file, e.file));
     $('examples').value = '';
+    const first = lib.current ?? lib.list()[0]?.id, e0 = first && lib.get(first);
+    if (e0) { try { await load(e0.text); if (e0.title !== label()) nb.title = e0.title; libId = e0.id; lastTitle = nb.title; lib.setCurrent(e0.id); } catch (er) { notice = String(er.message || er); } }
     if (!nb.cells.length) nb.cells.push(blank('code'));
+    if (!libId) await addEntry();
     window.__ready = true;
   } catch (e) { notice = 'load failed: ' + e.message; }
   render();

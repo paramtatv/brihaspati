@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Sanskrit by default; en and hi on request. Sassembly's own syntax and the file's marker words are never translated.
 const D = {
-  sa: { run: 'चालय', runall: 'सर्वं चालय', open: 'उद्घाटय', save: 'रक्ष', new: 'नवम्', addcode: '+ कोष्ठः', addnote: '+ टिप्पणी', up: '↑', down: '↓', del: 'लोपय', kind: 'प्रकारः ⇄',
+  sa: { library: 'पुस्तिकाः', untitled: 'अनामिका', rename: 'नाम परिवर्तय', delnb: 'लोपय', confirmdel: (n) => `“${n}” लोप्यताम्?`, nostore: 'अस्मिन् ब्राउज़रे रक्षणं नास्ति; “रक्ष” इत्यनेन सञ्चिकां रक्षत।', quota: 'रक्षणस्थानं पूर्णम्; पुस्तिकां लोपयत वा सञ्चिकायां रक्षत।', here: 'अस्मिन् ब्राउज़रे एव रक्षितम्।', toolarge: 'पुस्तिका अतिमहती।', run: 'चालय', runall: 'सर्वं चालय', open: 'उद्घाटय', save: 'रक्ष', new: 'नवम्', addcode: '+ कोष्ठः', addnote: '+ टिप्पणी', up: '↑', down: '↓', del: 'लोपय', kind: 'प्रकारः ⇄',
     code: 'कोष्ठः', note: 'टिप्पणी', running: 'चलति…', rerun: 'पुनश्चालितम्', saved: 'रक्षितम्', match: 'रक्षितेन समम्', mismatch: 'भेदः — रक्षितं पुनश्चालितं च भिन्नम्',
     pins: 'सूचना: एषा सञ्चिका अन्येन सङ्कलकबिम्बेन वा यन्त्रेण वा रक्षिता।', timeout: (s) => `${s} विनाडिकासु उत्तरं नास्ति; कर्मकः समाप्तः (मन्दं यन्त्रम्?)`,
     embedall: 'सर्वं निवेशय', sidenote: (d) => `बृहच्चित्राणि पृथक् सञ्चिकासु रक्षितानि; ताः ${d}/ नामके सञ्चिकापुटे स्थापयत।`, title: 'पुस्तिकानाम', examples: 'उदाहरणानि…', empty: 'कोष्ठाः न सन्ति।',
     stop: 'विरमय', steps: 'पदानि', stale: 'जीर्णम्', stopped: 'विरमितम्' },   // BR-11 proposals (primary): see BR-11.md
-  en: { run: 'Run', runall: 'Run all', open: 'Open', save: 'Save', new: 'New', addcode: '+ code', addnote: '+ note', up: '↑', down: '↓', del: 'Delete', kind: 'kind ⇄',
+  en: { library: 'Notebooks', untitled: 'untitled', rename: 'Rename', delnb: 'Delete', confirmdel: (n) => `Delete "${n}"?`, nostore: 'Not saved: storage is unavailable here. Use Save to keep a file.', quota: 'Storage full: delete a notebook or Save to a file.', here: 'Saved in this browser only.', toolarge: 'Notebook too large to keep.', run: 'Run', runall: 'Run all', open: 'Open', save: 'Save', new: 'New', addcode: '+ code', addnote: '+ note', up: '↑', down: '↓', del: 'Delete', kind: 'kind ⇄',
     code: 'code', note: 'note', running: 'running…', rerun: 'rerun', saved: 'saved', match: 'equals the saved output', mismatch: 'MISMATCH — the saved output differs from the rerun',
     pins: 'Note: this file was saved under a different compiler image or engine.', timeout: (s) => `slow device? no answer after ${s} s; the worker was terminated (a desktop needs about 10 s)`,
     embedall: 'embed everything', sidenote: (d) => `Large images were saved as separate files; put them in a folder named ${d}/ next to the notebook.`, title: 'Notebook title', examples: 'Examples…', empty: 'No cells.',
     stop: 'Stop', steps: 'steps', stale: 'stale', stopped: 'stopped' },
-  hi: { run: 'चलाएँ', runall: 'सब चलाएँ', open: 'खोलें', save: 'सहेजें', new: 'नया', addcode: '+ कोड', addnote: '+ टिप्पणी', up: '↑', down: '↓', del: 'हटाएँ', kind: 'प्रकार ⇄',
+  hi: { library: 'नोटबुक', untitled: 'बिना नाम', rename: 'नाम बदलें', delnb: 'हटाएँ', confirmdel: (n) => `“${n}” हटाएँ?`, nostore: 'सहेजा नहीं गया: यहाँ भंडारण उपलब्ध नहीं। फ़ाइल के लिए “सहेजें” दबाएँ।', quota: 'भंडारण भरा है: कोई नोटबुक हटाएँ या फ़ाइल में सहेजें।', here: 'केवल इसी ब्राउज़र में सहेजा गया।', toolarge: 'नोटबुक रखने के लिए बहुत बड़ी है।', run: 'चलाएँ', runall: 'सब चलाएँ', open: 'खोलें', save: 'सहेजें', new: 'नया', addcode: '+ कोड', addnote: '+ टिप्पणी', up: '↑', down: '↓', del: 'हटाएँ', kind: 'प्रकार ⇄',
     code: 'कोड', note: 'टिप्पणी', running: 'चल रहा है…', rerun: 'पुनः चलाया', saved: 'सहेजा हुआ', match: 'सहेजे आउटपुट के बराबर', mismatch: 'अंतर — सहेजा आउटपुट और पुनः चलाया आउटपुट भिन्न हैं',
     pins: 'सूचना: यह फ़ाइल किसी अन्य कंपाइलर इमेज या इंजन से सहेजी गई थी।', timeout: (s) => `${s} सेकंड में उत्तर नहीं; कर्मक समाप्त (धीमा उपकरण?)`,
     embedall: 'सब कुछ एम्बेड करें', sidenote: (d) => `बड़े चित्र अलग फ़ाइलों में सहेजे गए; उन्हें ${d}/ फ़ोल्डर में रखें।`, title: 'नोटबुक का नाम', examples: 'उदाहरण…', empty: 'कोई कोष्ठ नहीं।',

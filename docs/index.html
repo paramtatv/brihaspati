@@ -34,6 +34,26 @@
   .detail{color:var(--ink-3);font-size:13px} #notice{color:#B3261E;margin:8px 0}
   .prose p{max-width:70ch} .md{padding:6px 14px 12px;border-top:1px dashed var(--rule)} .md table{margin:8px 0} .md blockquote{margin:8px 0;padding-left:12px;border-left:3px solid var(--rule)}
   .pic{display:block;max-width:100%;max-height:260px;margin:6px 0;border:1px solid var(--rule);background:#fff} .embed{font-size:14px}
+  .shell{display:grid;grid-template-columns:264px minmax(0,1fr);gap:28px;align-items:start}
+  .shell.side-off{grid-template-columns:minmax(0,1fr)} .shell.side-off #side{display:none}
+  #side{position:sticky;top:76px;border:1px solid var(--rule);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow-1);max-height:calc(100vh - 100px);display:flex;flex-direction:column;overflow:hidden}
+  #side .shead{display:flex;align-items:center;gap:6px;padding:10px 10px 10px 14px;border-bottom:1px solid var(--rule)}
+  #side .shead h2{flex:1;margin:0;font:600 11.5px var(--mono);letter-spacing:0;color:var(--madder)}
+  #side .shead .btn--sm{min-height:32px;padding:4px 10px;font-size:13.5px}
+  #nblist{list-style:none;margin:0;padding:6px;overflow:auto;flex:1}
+  #nblist li{display:flex;align-items:center;gap:2px;border-radius:var(--r);border-left:3px solid transparent}
+  #nblist li:hover{background:var(--sunk)}
+  #nblist li.cur{background:var(--madder-w);border-left-color:var(--madder)}
+  #nblist .pick{flex:1;min-width:0;text-align:left;background:none;border:0;color:var(--ink);font:inherit;padding:8px 8px;cursor:pointer;min-height:44px}
+  #nblist .nm{display:block;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #nblist .when{display:block;font:400 11.5px var(--mono);color:var(--ink-3)}
+  #nblist .act{background:none;border:0;color:var(--ink-3);cursor:pointer;min-width:32px;min-height:44px;font-size:15px;border-radius:var(--r)}
+  #nblist .act:hover{color:var(--ink);background:var(--rule)}
+  #nblist input{flex:1;min-width:0;min-height:36px;margin:4px;font:inherit;padding:4px 8px;border:1px solid var(--madder);border-radius:var(--r);background:var(--surface);color:var(--ink)}
+  #side .snote{margin:0;padding:8px 14px 10px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink-3)}
+  #side .snote[hidden]{display:none}
+  @media (max-width:860px){.shell{grid-template-columns:minmax(0,1fr)}#side{position:static;max-height:46vh}.shell.side-off #side{display:none}}
+  #sidetoggle[aria-expanded=true]{background:var(--madder-w)}
 </style>
 <script src="assets/theme.js"></script>
 </head>
@@ -57,10 +77,18 @@
 <main class="wrap" style="padding-top:20px;padding-bottom:40px">
   <p class="eyebrow">Sassembly v1.0.2 · .isas</p>
   <h1 class="sr-only">बृहस्पतिः</h1>
+  <div class="shell" id="shell">
+  <aside id="side" aria-label="Notebooks">
+    <div class="shead"><h2 data-i18n="library">पुस्तिकाः</h2>
+      <button class="btn btn--sm" id="newnb" type="button" data-i18n="new">नवम्</button>
+      <button class="btn btn--sm" id="opennb" type="button" data-i18n="open">उद्घाटय</button></div>
+    <ul id="nblist"></ul>
+    <p class="snote" id="snote" hidden></p>
+  </aside>
+  <div class="nbmain">
   <div class="bar">
+    <button class="btn btn--sm" id="sidetoggle" type="button" aria-expanded="true" aria-controls="side" data-i18n="library">पुस्तिकाः</button>
     <input type="text" id="title" aria-label="title" placeholder="…">
-    <button class="btn btn--sm" id="newnb" type="button" data-i18n="new">नवम्</button>
-    <button class="btn btn--sm" id="opennb" type="button" data-i18n="open">उद्घाटय</button>
     <select id="examples" aria-label="examples"><option value="" data-i18n="examples">उदाहरणानि…</option></select>
     <button class="btn btn--sm" id="savenb" type="button" data-i18n="save">रक्ष</button>
     <button class="btn btn--solid btn--sm" id="runall" type="button" data-i18n="runall">सर्वं चालय</button>
@@ -75,6 +103,7 @@
     <button class="btn btn--sm" id="addcode" type="button" data-i18n="addcode">+ कोष्ठः</button>
     <button class="btn btn--sm" id="addnote" type="button" data-i18n="addnote">+ टिप्पणी</button>
   </div>
+  </div></div>
 </main>
 <footer class="foot"><div class="wrap foot__in">
   <span class="foot__deva">बृहस्पतिः</span><span class="foot__spacer">AGPL-3.0-only · commercial licence available</span>

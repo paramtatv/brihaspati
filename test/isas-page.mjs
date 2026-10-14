@@ -28,7 +28,7 @@ const bySrc = Object.fromEntries(cellFiles.map((f) => [srcOf(f), f]));
 const docs = join(root, 'docs');
 
 // the page under test is the build of THIS source
-for (const f of ['core.mjs', 'isas.mjs', 'isas-names.mjs', 'refusals.mjs', 'parts.mjs', 'svg.mjs', 'md.mjs', 'proto.mjs', 'session.mjs', 'machine.mjs']) check(sha(readFileSync(join(docs, f))) === sha(readFileSync(join(root, 'kernel', f))), `docs/${f} == kernel/${f}`);
+for (const f of ['core.mjs', 'isas.mjs', 'isas-names.mjs', 'refusals.mjs', 'parts.mjs', 'svg.mjs', 'md.mjs', 'proto.mjs', 'session.mjs', 'machine.mjs', 'library.mjs']) check(sha(readFileSync(join(docs, f))) === sha(readFileSync(join(root, 'kernel', f))), `docs/${f} == kernel/${f}`);
 check(sha(readFileSync(join(docs, 'vendor/stage1.elf'))) === pins.stage1_sha256 && sha(readFileSync(join(docs, 'vendor/yantra_wasm.wasm'))) === pins.yantra_wasm_sha256, 'docs/vendor assets == pins');
 const examples = readdirSync(join(root, 'examples')).filter((f) => f.endsWith('.isas') && f !== 'images.isas').sort();
 for (const f of [...examples, 'images.isas']) check(sha(readFileSync(join(docs, 'examples', f))) === sha(readFileSync(join(root, 'examples', f))), `docs/examples/${f} == examples/${f}`);
